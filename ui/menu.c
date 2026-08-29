@@ -72,6 +72,9 @@ const t_menu_item MenuList[] =
     {"SList1",      MENU_SLIST1        },
     {"SList2",      MENU_SLIST2        },
     {"SList3",      MENU_SLIST3        },
+#ifdef ENABLE_K5RX_FAST_SCAN
+    {"ScnMod",      MENU_SCAN_MODE     },
+#endif
     {"ScnRev",      MENU_SC_REV        },
 #ifndef ENABLE_FEAT_F4HWN
     #ifdef ENABLE_NOAA
@@ -399,6 +402,14 @@ const char gSubMenu_SCRAMBLER[][7] =
         "TINY",
         "CLASSIC"
     };
+
+#ifdef ENABLE_K5RX_FAST_SCAN
+    const char gSubMenu_SCAN_MODE[][7] =
+    {
+        "NORMAL",
+        "FAST"
+    };
+#endif
 
     #ifdef ENABLE_FEAT_F4HWN_NARROWER
         const char gSubMenu_SET_NFM[][9] =
@@ -895,6 +906,12 @@ void UI_DisplayMenu(void)
                 strcpy(String, gSubMenu_VOICE[gSubMenuSelection]);
                 break;
         #endif
+
+#ifdef ENABLE_K5RX_FAST_SCAN
+        case MENU_SCAN_MODE:
+            strcpy(String, gSubMenu_SCAN_MODE[gSubMenuSelection]);
+            break;
+#endif
 
         case MENU_SC_REV:
             if(gSubMenuSelection == 0)

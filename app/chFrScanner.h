@@ -20,6 +20,11 @@ void CHFRSCANNER_Stop(void);
 void CHFRSCANNER_Start(const bool storeBackupSettings, const int8_t scan_direction);
 void CHFRSCANNER_ContinueScanning(void);
 
+#ifdef ENABLE_K5RX_FAST_SCAN
+bool CHFRSCANNER_FastActive(void);
+void CHFRSCANNER_FastAppUpdate(void);
+#endif
+
 #ifdef ENABLE_FEAT_F4HWN
     extern uint32_t lastFoundFrqOrChan;
     extern uint32_t lastFoundFrqOrChanOld;

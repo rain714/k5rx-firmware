@@ -174,6 +174,12 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
                 break;
         #endif
 
+#ifdef ENABLE_K5RX_FAST_SCAN
+        case MENU_SCAN_MODE:
+            *pMax = FAST_SCAN_MODE_COUNT - 1;
+            break;
+#endif
+
         case MENU_SC_REV:
             //*pMin = 0;
             *pMax = 104;
@@ -648,6 +654,12 @@ void MENU_AcceptSetting(void)
                 gUpdateStatus        = true;
                 break;
         #endif
+
+#ifdef ENABLE_K5RX_FAST_SCAN
+        case MENU_SCAN_MODE:
+            gSetting_fast_scan_mode = (FastScanMode_t)gSubMenuSelection;
+            break;
+#endif
 
         case MENU_SC_REV:
             gEeprom.SCAN_RESUME_MODE = gSubMenuSelection;
@@ -1149,6 +1161,12 @@ void MENU_ShowCurrentSetting(void)
 #ifdef ENABLE_VOICE
         case MENU_VOICE:
             gSubMenuSelection = gEeprom.VOICE_PROMPT;
+            break;
+#endif
+
+#ifdef ENABLE_K5RX_FAST_SCAN
+        case MENU_SCAN_MODE:
+            gSubMenuSelection = gSetting_fast_scan_mode;
             break;
 #endif
 

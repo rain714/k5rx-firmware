@@ -221,6 +221,14 @@ extern enum BacklightOnRxTx_t gSetting_backlight_on_tx_rx;
 #endif
 extern bool                  gSetting_live_DTMF_decoder;
 extern uint8_t               gSetting_battery_text;
+#ifdef ENABLE_K5RX_FAST_SCAN
+typedef enum {
+    FAST_SCAN_MODE_NORMAL = 0,
+    FAST_SCAN_MODE_FAST,
+    FAST_SCAN_MODE_COUNT,
+} FastScanMode_t;
+extern FastScanMode_t        gSetting_fast_scan_mode;
+#endif
 
 extern bool                  gMonitor;
 

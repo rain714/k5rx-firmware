@@ -15,6 +15,7 @@ endif
 # Safety/capability flags are independent from profiles. Profiles only select defaults.
 DISABLE_TX ?= 0
 ENABLE_K5RX_CUSTOM_EEPROM ?= 0
+ENABLE_K5RX_FAST_SCAN ?= 0
 
 # ---- STOCK QUANSHENG FEATURES ----
 ENABLE_FMRADIO                  ?= 0
@@ -99,6 +100,7 @@ ENABLE_EXPERIMENTAL_CLFAGS      ?= 1
 ifeq ($(BUILD_PROFILE),K5RX)
 	override DISABLE_TX := 1
 	override ENABLE_K5RX_CUSTOM_EEPROM := 1
+	override ENABLE_K5RX_FAST_SCAN := 1
 
 	# Transmit-only features are intentionally absent from the K5RX profile.
 	override ENABLE_AIRCOPY := 0
@@ -112,6 +114,12 @@ endif
 ifeq ($(ENABLE_K5RX_CUSTOM_EEPROM),1)
 ifneq ($(DISABLE_TX),1)
 $(error ENABLE_K5RX_CUSTOM_EEPROM requires DISABLE_TX=1)
+endif
+endif
+
+ifeq ($(ENABLE_K5RX_FAST_SCAN),1)
+ifneq ($(ENABLE_K5RX_CUSTOM_EEPROM),1)
+$(error ENABLE_K5RX_FAST_SCAN requires ENABLE_K5RX_CUSTOM_EEPROM=1)
 endif
 endif
 
@@ -356,6 +364,9 @@ ifeq ($(DISABLE_TX),1)
 endif
 ifeq ($(ENABLE_K5RX_CUSTOM_EEPROM),1)
 	CFLAGS += -DENABLE_K5RX_CUSTOM_EEPROM
+endif
+ifeq ($(ENABLE_K5RX_FAST_SCAN),1)
+	CFLAGS += -DENABLE_K5RX_FAST_SCAN
 endif
 ifeq ($(ENABLE_SPECTRUM),1)
 CFLAGS += -DENABLE_SPECTRUM

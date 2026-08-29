@@ -15,6 +15,10 @@
  */
 
 #include "app/chFrScanner.h"
+#ifdef ENABLE_K5RX_FAST_SCAN
+#include "ARMCM0.h"
+#include "scheduler.h"
+#endif
 #ifdef ENABLE_FMRADIO
     #include "app/fm.h"
 #endif
@@ -43,6 +47,23 @@
     } while (0)
 
 static volatile uint32_t gGlobalSysTickCounter;
+
+#ifdef ENABLE_K5RX_FAST_SCAN
+uint32_t SCHEDULER_NowUs(void)
+{
+    uint32_t tick0;
+    uint32_t tick1;
+    uint32_t value;
+
+    do {
+        tick0 = gGlobalSysTickCounter;
+        value = SysTick->VAL;
+        tick1 = gGlobalSysTickCounter;
+    } while (tick0 != tick1);
+
+    return tick0 * 10000u + (SysTick->LOAD - value) / 48u;
+}
+#endif
 
 void SystickHandler(void);
 

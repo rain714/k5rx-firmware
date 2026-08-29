@@ -150,6 +150,9 @@ enum BacklightOnRxTx_t gSetting_backlight_on_tx_rx;
 #endif
 bool              gSetting_live_DTMF_decoder;
 uint8_t           gSetting_battery_text;
+#ifdef ENABLE_K5RX_FAST_SCAN
+FastScanMode_t    gSetting_fast_scan_mode = FAST_SCAN_MODE_FAST;
+#endif
 
 bool              gMonitor = false;           // true opens the squelch
 

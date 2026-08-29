@@ -991,8 +991,12 @@ void APP_Update(void)
     if (gReducedService)
         return;
 
-    if (gCurrentFunction != FUNCTION_TRANSMIT)
-        HandleFunction();
+#ifdef ENABLE_K5RX_FAST_SCAN
+    CHFRSCANNER_FastAppUpdate();
+    if (!CHFRSCANNER_FastActive())
+#endif
+        if (gCurrentFunction != FUNCTION_TRANSMIT)
+            HandleFunction();
 
 #ifdef ENABLE_FMRADIO
 //  if (gFmRadioCountdown_500ms > 0)

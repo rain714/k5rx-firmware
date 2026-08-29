@@ -78,6 +78,9 @@ enum
     MENU_SLIST1,
     MENU_SLIST2,
     MENU_SLIST3,
+#ifdef ENABLE_K5RX_FAST_SCAN
+    MENU_SCAN_MODE,
+#endif
 #ifdef ENABLE_ALARM
     MENU_AL_MOD,
 #endif

@@ -293,6 +293,9 @@ static void SETTINGS_SetK5RXDefaults(void)
     gSetting_350EN = true;
     gSetting_live_DTMF_decoder = false;
     gSetting_battery_text = 2;
+#ifdef ENABLE_K5RX_FAST_SCAN
+    gSetting_fast_scan_mode = FAST_SCAN_MODE_FAST;
+#endif
     gSetting_backlight_on_tx_rx = BACKLIGHT_ON_TR_OFF;
 #ifdef ENABLE_AM_FIX
     gSetting_AM_fix = true;
@@ -453,6 +456,11 @@ static void SETTINGS_LoadK5RXSettings(void)
 #endif
     gSetting_live_DTMF_decoder = data[5] != 0xFFu && (data[5] & EEPROM_K5RX_SETTINGS_FLAG_LIVE_DTMF) != 0;
     gSetting_backlight_on_tx_rx = data[6] <= 3 ? data[6] : BACKLIGHT_ON_TR_OFF;
+#ifdef ENABLE_K5RX_FAST_SCAN
+    const uint8_t fastScanMode = data[7] & 0x03u;
+    gSetting_fast_scan_mode = fastScanMode < FAST_SCAN_MODE_COUNT ?
+        (FastScanMode_t)fastScanMode : FAST_SCAN_MODE_FAST;
+#endif
 
     EEPROM_ReadBuffer(EEPROM_K5RX_SETTINGS_F4HWN_BASE, data, sizeof(data));
 #ifdef ENABLE_FEAT_F4HWN_INV
@@ -532,6 +540,9 @@ static void SETTINGS_SaveK5RXSettings(void)
 #endif
     data[5] = gSetting_live_DTMF_decoder ? EEPROM_K5RX_SETTINGS_FLAG_LIVE_DTMF : 0u;
     data[6] = gSetting_backlight_on_tx_rx;
+#ifdef ENABLE_K5RX_FAST_SCAN
+    data[7] = (uint8_t)(0xFCu | ((uint8_t)gSetting_fast_scan_mode & 0x03u));
+#endif
     EEPROM_WriteBuffer(EEPROM_K5RX_SETTINGS_GENERAL_BASE + 24u, data);
 
     memset(data, 0xFF, sizeof(data));
