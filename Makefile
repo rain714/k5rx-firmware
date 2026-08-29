@@ -104,6 +104,7 @@ ifeq ($(BUILD_PROFILE),K5RX)
 	override ENABLE_K5RX_FAST_SCAN := 1
 	override ENABLE_K5RX_BANK_UI := 1
 	override ENABLE_FMRADIO := 1
+	override ENABLE_SPECTRUM := 1
 
 	# Transmit-only features are intentionally absent from the K5RX profile.
 	override ENABLE_AIRCOPY := 0
@@ -111,6 +112,7 @@ ifeq ($(BUILD_PROFILE),K5RX)
 	override ENABLE_TX1750 := 0
 	override ENABLE_TX_WHEN_AM := 0
 	override ENABLE_REDUCE_LOW_MID_TX_POWER := 0
+	override ENABLE_AUDIO_BAR := 0
 endif
 
 # The compact K5RX schema intentionally contains no transmit configuration.
