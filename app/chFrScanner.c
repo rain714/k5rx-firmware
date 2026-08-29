@@ -1,6 +1,7 @@
 
 #include "app/app.h"
 #include "app/chFrScanner.h"
+#include "audio.h"
 #include "functions.h"
 #include "misc.h"
 #include "settings.h"
@@ -49,6 +50,17 @@ void CHFRSCANNER_Start(const bool storeBackupSettings, const int8_t scan_directi
 
     gNextMrChannel   = gRxVfo->CHANNEL_SAVE;
     currentScanList = SCAN_NEXT_CHAN_SCANLIST1;
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+    if (IS_MR_CHANNEL(gNextMrChannel) && !RADIO_ScanScopeHasChannel(gEeprom.SCAN_LIST_DEFAULT)) {
+        if (storeBackupSettings) {
+            gEeprom.CROSS_BAND_RX_TX = initialCROSS_BAND_RX_TX;
+            initialCROSS_BAND_RX_TX = CROSS_BAND_OFF;
+        }
+        gScanStateDir = SCAN_OFF;
+        gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+        return;
+    }
+#endif
     gScanStateDir    = scan_direction;
 
     if (IS_MR_CHANNEL(gNextMrChannel))
@@ -249,12 +261,21 @@ static void NextFreqChannel(void)
 
 static void NextMemChannel(void)
 {
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+    static channel_t prev_mr_chan = MR_CHANNEL_FIRST;
+    const bool       enabled   = (gEeprom.SCAN_LIST_DEFAULT > 0 && gEeprom.SCAN_LIST_DEFAULT < 4) ? gEeprom.SCAN_LIST_ENABLED[gEeprom.SCAN_LIST_DEFAULT - 1] : true;
+    const channel_t  chan1     = (gEeprom.SCAN_LIST_DEFAULT > 0 && gEeprom.SCAN_LIST_DEFAULT < 4) ? gEeprom.SCANLIST_PRIORITY_CH1[gEeprom.SCAN_LIST_DEFAULT - 1] : CHANNEL_NONE;
+    const channel_t  chan2     = (gEeprom.SCAN_LIST_DEFAULT > 0 && gEeprom.SCAN_LIST_DEFAULT < 4) ? gEeprom.SCANLIST_PRIORITY_CH2[gEeprom.SCAN_LIST_DEFAULT - 1] : CHANNEL_NONE;
+    const channel_t  prev_chan = gNextMrChannel;
+    channel_t        chan      = MR_CHANNEL_FIRST;
+#else
     static unsigned int prev_mr_chan = 0;
     const bool          enabled      = (gEeprom.SCAN_LIST_DEFAULT > 0 && gEeprom.SCAN_LIST_DEFAULT < 4) ? gEeprom.SCAN_LIST_ENABLED[gEeprom.SCAN_LIST_DEFAULT - 1] : true;
     const int           chan1        = (gEeprom.SCAN_LIST_DEFAULT > 0 && gEeprom.SCAN_LIST_DEFAULT < 4) ? gEeprom.SCANLIST_PRIORITY_CH1[gEeprom.SCAN_LIST_DEFAULT - 1] : -1;
     const int           chan2        = (gEeprom.SCAN_LIST_DEFAULT > 0 && gEeprom.SCAN_LIST_DEFAULT < 4) ? gEeprom.SCANLIST_PRIORITY_CH2[gEeprom.SCAN_LIST_DEFAULT - 1] : -1;
     const unsigned int  prev_chan    = gNextMrChannel;
     unsigned int        chan         = 0;
+#endif
 
     //char str[64] = "";
 
@@ -268,7 +289,11 @@ static void NextMemChannel(void)
                 //sprintf(str, "-> Chan1 %d\n", chan1 + 1);
                 //LogUart(str);
 
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+                if (chan1 != CHANNEL_NONE)
+#else
                 if (chan1 >= 0)
+#endif
                 {
                     if (RADIO_CheckValidChannel(chan1, false, gEeprom.SCAN_LIST_DEFAULT))
                     {
@@ -284,7 +309,11 @@ static void NextMemChannel(void)
                 //sprintf(str, "-> Chan2 %d\n", chan2 + 1);
                 //LogUart(str);
 
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+                if (chan2 != CHANNEL_NONE)
+#else
                 if (chan2 >= 0)
+#endif
                 {
                     if (RADIO_CheckValidChannel(chan2, false, gEeprom.SCAN_LIST_DEFAULT))
                     {
@@ -327,15 +356,27 @@ static void NextMemChannel(void)
             case SCAN_NEXT_CHAN_MR:
                 currentScanList = SCAN_NEXT_CHAN_MR;
                 gNextMrChannel   = prev_mr_chan;
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+                chan             = CHANNEL_NONE;
+#else
                 chan             = 0xff;
+#endif
                 break;
         }
     }
 
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+    if (!enabled || chan == CHANNEL_NONE)
+#else
     if (!enabled || chan == 0xff)
-    {       
+#endif
+    {
         chan = RADIO_FindNextChannel(gNextMrChannel + gScanStateDir, gScanStateDir, true, gEeprom.SCAN_LIST_DEFAULT);
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+        if (chan == CHANNEL_NONE)
+#else
         if (chan == 0xFF)
+#endif
         {   // no valid channel found
             chan = MR_CHANNEL_FIRST;
         }

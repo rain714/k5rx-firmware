@@ -152,6 +152,9 @@ extern DCS_CodeType_t gCurrentCodeType;
 extern VfoState_t     VfoState[2];
 
 bool      RADIO_CheckValidChannel(uint16_t channel, bool checkScanList, uint8_t scanList);
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+bool      RADIO_ScanScopeHasChannel(uint8_t scanList);
+#endif
 channel_t RADIO_FindNextChannel(channel_t ChNum, int8_t Direction, bool bCheckScanList, uint8_t RadioNum);
 void      RADIO_InitInfo(VFO_Info_t *pInfo, const channel_t ChannelSave, const uint32_t Frequency);
 void     RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure);

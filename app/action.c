@@ -185,6 +185,23 @@ void ACTION_Monitor(void)
         gRequestDisplayScreen = gScreenToDisplay;
 }
 
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+static bool ACTION_SelectNextNonEmptyScanScope(void)
+{
+    uint8_t nextScope = gEeprom.SCAN_LIST_DEFAULT;
+
+    for (unsigned int i = 0; i < 6; i++) {
+        nextScope = (nextScope + 1u) % 6u;
+        if (RADIO_ScanScopeHasChannel(nextScope)) {
+            gEeprom.SCAN_LIST_DEFAULT = nextScope;
+            return true;
+        }
+    }
+
+    return false;
+}
+#endif
+
 void ACTION_Scan(bool bRestart)
 {
     (void)bRestart;
@@ -230,8 +247,15 @@ void ACTION_Scan(bool bRestart)
             return;
         }
 
-        // channel mode. Keep scanning but toggle between scan lists
+        // channel mode. Keep scanning but toggle between non-empty scan scopes.
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+        if (!ACTION_SelectNextNonEmptyScanScope()) {
+            gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+            return;
+        }
+#else
         gEeprom.SCAN_LIST_DEFAULT = (gEeprom.SCAN_LIST_DEFAULT + 1) % 6;
+#endif
         #ifdef ENABLE_FEAT_F4HWN_RESUME_STATE
             SETTINGS_WriteCurrentState();
         #endif
@@ -241,6 +265,14 @@ void ACTION_Scan(bool bRestart)
         gScanPauseDelayIn_10ms = 1;
         gScheduleScanListen    = false;
     } else {
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+        if (IS_MR_CHANNEL(gRxVfo->CHANNEL_SAVE) &&
+            !RADIO_ScanScopeHasChannel(gEeprom.SCAN_LIST_DEFAULT) &&
+            !ACTION_SelectNextNonEmptyScanScope()) {
+            gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+            return;
+        }
+#endif
         #ifdef ENABLE_FEAT_F4HWN_RESUME_STATE
         if(gScanRangeStart == 0) // No ScanRange
         {

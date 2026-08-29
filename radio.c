@@ -71,29 +71,38 @@ bool RADIO_CheckValidChannel(uint16_t channel, bool checkScanList, uint8_t scanL
     if (!checkScanList || scanList > 4)
         return true;
 
-    /*
-    if(scanList == 0 && (att.scanlist1 == 1 || att.scanlist2 == 1 || att.scanlist3 == 1))
-    {
-        return false;
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+    switch (scanList) {
+    case 0:
+        if (att.scanlist1 || att.scanlist2 || att.scanlist3)
+            return false;
+        break;
+    case 1:
+        if (!att.scanlist1)
+            return false;
+        break;
+    case 2:
+        if (!att.scanlist2)
+            return false;
+        break;
+    case 3:
+        if (!att.scanlist3)
+            return false;
+        break;
+    case 4:
+        if (!att.scanlist1 && !att.scanlist2 && !att.scanlist3)
+            return false;
+        break;
     }
-    else if(scanList == 1 && att.scanlist1 != 1)
-    {
-        return false;
-    }
-    else if(scanList == 2 && att.scanlist2 != 1)
-    {
-        return false;
-    }
-    else if(scanList == 3 && att.scanlist3 != 1)
-    {
-        return false;
-    }
-    else if(scanList == 4 && (att.scanlist1 == 0 && att.scanlist2 == 0 && att.scanlist3 == 0))
-    {
-        return false;
-    }
-    */
 
+    if (scanList >= 1 && scanList <= 3) {
+        const channel_t priorityCh1 = gEeprom.SCANLIST_PRIORITY_CH1[scanList - 1];
+        const channel_t priorityCh2 = gEeprom.SCANLIST_PRIORITY_CH2[scanList - 1];
+        return priorityCh1 != channel && priorityCh2 != channel;
+    }
+
+    return true;
+#else
     if ((scanList == 0 && (att.scanlist1 == 1 || att.scanlist2 == 1 || att.scanlist3 == 1)) ||
         (scanList == 1 && att.scanlist1 != 1) ||
         (scanList == 2 && att.scanlist2 != 1) ||
@@ -102,15 +111,30 @@ bool RADIO_CheckValidChannel(uint16_t channel, bool checkScanList, uint8_t scanL
         return false;
     }
 
-    //return true;
-
-    // I don't understand what this code is for...
-    
     const channel_t PriorityCh1 = gEeprom.SCANLIST_PRIORITY_CH1[scanList - 1];
     const channel_t PriorityCh2 = gEeprom.SCANLIST_PRIORITY_CH2[scanList - 1];
-
     return PriorityCh1 != channel && PriorityCh2 != channel;
+#endif
 }
+
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+bool RADIO_ScanScopeHasChannel(uint8_t scanList)
+{
+    if (scanList > 5)
+        return false;
+
+    if (scanList >= 1 && scanList <= 3) {
+        const channel_t priorityCh1 = gEeprom.SCANLIST_PRIORITY_CH1[scanList - 1];
+        const channel_t priorityCh2 = gEeprom.SCANLIST_PRIORITY_CH2[scanList - 1];
+
+        if (RADIO_CheckValidChannel(priorityCh1, false, 0) ||
+            RADIO_CheckValidChannel(priorityCh2, false, 0))
+            return true;
+    }
+
+    return RADIO_FindNextChannel(MR_CHANNEL_FIRST, RADIO_CHANNEL_UP, true, scanList) != CHANNEL_NONE;
+}
+#endif
 
 channel_t RADIO_FindNextChannel(channel_t Channel, int8_t Direction, bool bCheckScanList, uint8_t VFO)
 {
