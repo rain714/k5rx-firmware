@@ -476,6 +476,9 @@ void MENU_AcceptSetting(void)
         case MENU_SQL:
             gEeprom.SQUELCH_LEVEL = gSubMenuSelection;
             gVfoConfigureMode     = VFO_CONFIGURE;
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+            gFlagResetVfos        = true;
+#endif
             break;
 
         case MENU_STEP:

@@ -1684,9 +1684,10 @@ void APP_TimeSlice500ms(void)
 
     // Skipped authentic device check
 
+#ifndef DISABLE_TX
     if (gCurrentFunction != FUNCTION_TRANSMIT)
+#endif
     {
-
         if ((gBatteryCheckCounter & 1) == 0)
         {
             BOARD_ADC_GetBatteryInfo(&gBatteryVoltages[gBatteryVoltageIndex++], &gBatteryCurrent);
@@ -1960,13 +1961,25 @@ static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
     bool lck_condition = false;
 
     if(gSetting_set_lck)
+#ifdef DISABLE_TX
+        lck_condition = (gEeprom.KEY_LOCK || lowBatPopup);
+#else
         lck_condition = (gEeprom.KEY_LOCK || lowBatPopup) && gCurrentFunction != FUNCTION_TRANSMIT;
+#endif
     else
+#ifdef DISABLE_TX
+        lck_condition = (gEeprom.KEY_LOCK || lowBatPopup) && Key != KEY_PTT;
+#else
         lck_condition = (gEeprom.KEY_LOCK || lowBatPopup) && gCurrentFunction != FUNCTION_TRANSMIT && Key != KEY_PTT;
+#endif
 
     if (lck_condition)
 #else
+#ifdef DISABLE_TX
+    if ((gEeprom.KEY_LOCK || lowBatPopup) && Key != KEY_PTT)
+#else
     if ((gEeprom.KEY_LOCK || lowBatPopup) && gCurrentFunction != FUNCTION_TRANSMIT && Key != KEY_PTT)
+#endif
 #endif
     {   // keyboard is locked or low battery popup
 

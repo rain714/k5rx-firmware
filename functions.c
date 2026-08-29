@@ -93,6 +93,10 @@ void FUNCTION_Foreground(const FUNCTION_Type_t PreviousFunction)
         RADIO_PrepareCssTX();
 #endif
 
+#ifdef DISABLE_TX
+    if (PreviousFunction != FUNCTION_RECEIVE)
+        return;
+#else
     if (PreviousFunction == FUNCTION_TRANSMIT) {
         ST7565_FixInterfGlitch();
         gVFO_RSSI_bar_level[0] = 0;
@@ -100,6 +104,7 @@ void FUNCTION_Foreground(const FUNCTION_Type_t PreviousFunction)
     } else if (PreviousFunction != FUNCTION_RECEIVE) {
         return;
     }
+#endif
 
 #if defined(ENABLE_FMRADIO)
     if (gFmRadioMode)

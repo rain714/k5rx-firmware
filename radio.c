@@ -722,6 +722,9 @@ void RADIO_ConfigureSquelchAndOutputPower(VFO_Info_t *pInfo)
 
 void RADIO_ApplyOffset(VFO_Info_t *pInfo)
 {
+#ifdef DISABLE_TX
+    pInfo->freq_config_TX.Frequency = pInfo->freq_config_RX.Frequency;
+#else
     uint32_t Frequency = pInfo->freq_config_RX.Frequency;
 
     switch (pInfo->TX_OFFSET_FREQUENCY_DIRECTION)
@@ -737,6 +740,7 @@ void RADIO_ApplyOffset(VFO_Info_t *pInfo)
     }
 
     pInfo->freq_config_TX.Frequency = Frequency;
+#endif
 }
 
 static void RADIO_SelectCurrentVfo(void)

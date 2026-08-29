@@ -8,8 +8,11 @@
 void COMMON_KeypadLockToggle() 
 {
 
-    if (gScreenToDisplay != DISPLAY_MENU &&
-        gCurrentFunction != FUNCTION_TRANSMIT)
+    if (gScreenToDisplay != DISPLAY_MENU
+#ifndef DISABLE_TX
+        && gCurrentFunction != FUNCTION_TRANSMIT
+#endif
+        )
     {   // toggle the keyboad lock
 
         #ifdef ENABLE_VOICE

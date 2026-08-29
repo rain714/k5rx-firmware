@@ -753,8 +753,10 @@ static void MAIN_Key_STAR(bool bKeyPressed, bool bKeyHeld)
     }
 #endif
 
+#ifndef DISABLE_TX
     if (gCurrentFunction == FUNCTION_TRANSMIT)
         return;
+#endif
     
     if (gInputBoxIndex) {
         if (!bKeyHeld && bKeyPressed)
