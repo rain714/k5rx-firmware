@@ -16,6 +16,9 @@
 
 #include <string.h>
 
+#ifdef DISABLE_TX
+#include "app/action.h"
+#endif
 #include "app/app.h"
 #include "app/chFrScanner.h"
 #include "app/common.h"
@@ -98,6 +101,39 @@ void GENERIC_Key_F(bool bKeyPressed, bool bKeyHeld)
 
 void GENERIC_Key_PTT(bool bKeyPressed)
 {
+#ifdef DISABLE_TX
+    static bool pttMonitorActive;
+
+    gInputBoxIndex = 0;
+
+    if (!bKeyPressed || SerialConfigInProgress()) {
+        if (pttMonitorActive && gCurrentFunction == FUNCTION_MONITOR)
+            ACTION_Monitor();
+
+        pttMonitorActive = false;
+        gPttDebounceCounter = 0;
+        gUpdateStatus = true;
+        gUpdateDisplay = true;
+        return;
+    }
+
+#ifdef ENABLE_FMRADIO
+    if (gFM_ScanState != FM_SCAN_OFF)
+        FM_PlayAndUpdate();
+    if (gScreenToDisplay == DISPLAY_FM)
+        FM_TurnOff();
+#endif
+
+    if (gCurrentFunction != FUNCTION_MONITOR) {
+        ACTION_Monitor();
+        pttMonitorActive = true;
+    }
+
+    gPttDebounceCounter = 0;
+    gUpdateStatus = true;
+    gUpdateDisplay = true;
+    return;
+#else
     gInputBoxIndex = 0;
 
     if (!bKeyPressed || SerialConfigInProgress())
@@ -222,4 +258,5 @@ done:
 
     gUpdateStatus  = true;
     gUpdateDisplay = true;
+#endif
 }
