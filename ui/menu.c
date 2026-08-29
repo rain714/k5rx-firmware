@@ -459,6 +459,9 @@ const t_sidefunction gSubMenu_SIDEFUNCTIONS[] =
     {"LOCK\nKEYPAD",    ACTION_OPT_KEYLOCK},
     {"VFO A\nVFO B",    ACTION_OPT_A_B},
     {"VFO\nMEM",        ACTION_OPT_VFO_MR},
+#ifdef ENABLE_K5RX_BANK_UI
+    {"BANK",            ACTION_OPT_BANK},
+#endif
     {"MODE",            ACTION_OPT_SWITCH_DEMODUL},
 #ifdef ENABLE_BLMIN_TMP_OFF
     {"BLMIN\nTMP OFF",  ACTION_OPT_BLMIN_TMP_OFF},      //BackLight Minimum Temporay OFF

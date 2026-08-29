@@ -25,6 +25,9 @@
     #include "app/aircopy.h"
 #endif
 #include "app/app.h"
+#ifdef ENABLE_K5RX_BANK_UI
+    #include "app/bank.h"
+#endif
 #include "app/chFrScanner.h"
 #include "app/dtmf.h"
 #ifdef ENABLE_FLASHLIGHT
@@ -97,6 +100,9 @@ void (*ProcessKeysFunctions[])(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) 
 
 #ifdef ENABLE_AIRCOPY
     [DISPLAY_AIRCOPY] = &AIRCOPY_ProcessKeys,
+#endif
+#ifdef ENABLE_K5RX_BANK_UI
+    [DISPLAY_BANK] = &BANK_ProcessKeys,
 #endif
 };
 

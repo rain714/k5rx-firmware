@@ -18,6 +18,9 @@
 
 #include "app/action.h"
 #include "app/app.h"
+#ifdef ENABLE_K5RX_BANK_UI
+#include "app/bank.h"
+#endif
 #include "app/chFrScanner.h"
 #include "app/common.h"
 #ifdef ENABLE_FMRADIO
@@ -939,6 +942,10 @@ static void MAIN_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
 
 void MAIN_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 {
+#ifdef ENABLE_K5RX_BANK_UI
+    if (BANK_MainPreviewProcessKey(Key, bKeyPressed, bKeyHeld))
+        return;
+#endif
 #ifdef ENABLE_FMRADIO
     if (gFmRadioMode && Key != KEY_PTT && Key != KEY_EXIT) {
         if (!bKeyHeld && bKeyPressed)

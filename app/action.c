@@ -19,6 +19,9 @@
 
 #include "app/action.h"
 #include "app/app.h"
+#ifdef ENABLE_K5RX_BANK_UI
+    #include "app/bank.h"
+#endif
 #include "app/chFrScanner.h"
 #include "app/common.h"
 #include "app/dtmf.h"
@@ -57,6 +60,15 @@ inline static void ACTION_1750() { ACTION_AlarmOr1750(true); };
 #endif
 
 inline static void ACTION_ScanRestart() { ACTION_Scan(true); };
+#ifdef ENABLE_K5RX_BANK_UI
+static void ACTION_Bank(void)
+{
+    if (gScreenToDisplay == DISPLAY_BANK)
+        return;
+    BANK_Open();
+    gRequestDisplayScreen = DISPLAY_BANK;
+}
+#endif
 
 void (*action_opt_table[])(void) = {
     [ACTION_OPT_NONE] = &FUNCTION_NOP,
@@ -125,6 +137,9 @@ void (*action_opt_table[])(void) = {
 #ifdef ENABLE_REGA
     [ACTION_OPT_REGA_ALARM] = &ACTION_RegaAlarm,
     [ACTION_OPT_REGA_TEST] = &ACTION_RegaTest,
+#endif
+#ifdef ENABLE_K5RX_BANK_UI
+    [ACTION_OPT_BANK] = &ACTION_Bank,
 #endif
 };
 

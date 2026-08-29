@@ -16,6 +16,7 @@ endif
 DISABLE_TX ?= 0
 ENABLE_K5RX_CUSTOM_EEPROM ?= 0
 ENABLE_K5RX_FAST_SCAN ?= 0
+ENABLE_K5RX_BANK_UI ?= 0
 
 # ---- STOCK QUANSHENG FEATURES ----
 ENABLE_FMRADIO                  ?= 0
@@ -101,6 +102,7 @@ ifeq ($(BUILD_PROFILE),K5RX)
 	override DISABLE_TX := 1
 	override ENABLE_K5RX_CUSTOM_EEPROM := 1
 	override ENABLE_K5RX_FAST_SCAN := 1
+	override ENABLE_K5RX_BANK_UI := 1
 
 	# Transmit-only features are intentionally absent from the K5RX profile.
 	override ENABLE_AIRCOPY := 0
@@ -120,6 +122,12 @@ endif
 ifeq ($(ENABLE_K5RX_FAST_SCAN),1)
 ifneq ($(ENABLE_K5RX_CUSTOM_EEPROM),1)
 $(error ENABLE_K5RX_FAST_SCAN requires ENABLE_K5RX_CUSTOM_EEPROM=1)
+endif
+endif
+
+ifeq ($(ENABLE_K5RX_BANK_UI),1)
+ifneq ($(ENABLE_K5RX_CUSTOM_EEPROM),1)
+$(error ENABLE_K5RX_BANK_UI requires ENABLE_K5RX_CUSTOM_EEPROM=1)
 endif
 endif
 
@@ -193,6 +201,9 @@ ifeq ($(ENABLE_AIRCOPY),1)
 	OBJS += app/aircopy.o
 endif
 OBJS += app/app.o
+ifeq ($(ENABLE_K5RX_BANK_UI),1)
+	OBJS += app/bank.o
+endif
 OBJS += app/chFrScanner.o
 OBJS += app/common.o
 OBJS += app/dtmf.o
@@ -241,6 +252,9 @@ ifeq ($(ENABLE_AIRCOPY),1)
 	OBJS += ui/aircopy.o
 endif
 OBJS += ui/battery.o
+ifeq ($(ENABLE_K5RX_BANK_UI),1)
+	OBJS += ui/bank.o
+endif
 ifeq ($(ENABLE_FMRADIO),1)
 	OBJS += ui/fmradio.o
 endif
@@ -367,6 +381,9 @@ ifeq ($(ENABLE_K5RX_CUSTOM_EEPROM),1)
 endif
 ifeq ($(ENABLE_K5RX_FAST_SCAN),1)
 	CFLAGS += -DENABLE_K5RX_FAST_SCAN
+endif
+ifeq ($(ENABLE_K5RX_BANK_UI),1)
+	CFLAGS += -DENABLE_K5RX_BANK_UI
 endif
 ifeq ($(ENABLE_SPECTRUM),1)
 CFLAGS += -DENABLE_SPECTRUM

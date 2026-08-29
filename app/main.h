@@ -20,6 +20,9 @@
 #include "driver/keyboard.h"
 
 void MAIN_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld);
+#ifdef ENABLE_K5RX_BANK_UI
+void channelMove(uint16_t channel);
+#endif
 void channelMoveSwitch(void);
 
 #endif

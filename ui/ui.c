@@ -34,6 +34,9 @@
     #include "app/rega.h"
 #endif
 #include "ui/inputbox.h"
+#ifdef ENABLE_K5RX_BANK_UI
+    #include "ui/bank.h"
+#endif
 #include "ui/main.h"
 #include "ui/menu.h"
 #include "ui/scanner.h"
@@ -63,6 +66,9 @@ void (*UI_DisplayFunctions[])(void) = {
 
 #ifdef ENABLE_REGA
     [DISPLAY_REGA] = &UI_DisplayREGA,
+#endif
+#ifdef ENABLE_K5RX_BANK_UI
+    [DISPLAY_BANK] = &UI_DisplayBank,
 #endif
 };
 

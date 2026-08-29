@@ -37,6 +37,9 @@ enum GUI_DisplayType_t
 #ifdef ENABLE_REGA
     DISPLAY_REGA,
 #endif
+#ifdef ENABLE_K5RX_BANK_UI
+    DISPLAY_BANK,
+#endif
 
     DISPLAY_N_ELEM,
     DISPLAY_INVALID = 0xFFu

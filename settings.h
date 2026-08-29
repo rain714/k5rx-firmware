@@ -127,6 +127,9 @@ enum ACTION_OPT_t {
     ACTION_OPT_REGA_ALARM,
     ACTION_OPT_REGA_TEST,
 #endif
+#ifdef ENABLE_K5RX_BANK_UI
+    ACTION_OPT_BANK,
+#endif
     ACTION_OPT_LEN
 };
 
@@ -323,6 +326,9 @@ const SETTINGS_K5RX_ChannelRecord_t *SETTINGS_GetK5RXChannelRecord(channel_t cha
 bool SETTINGS_LoadK5RXChannel(channel_t channel, VFO_Info_t *pVFO);
 bool SETTINGS_LoadK5RXVfoRuntime(uint8_t vfo, uint8_t band, VFO_Info_t *pVFO);
 bool SETTINGS_IsK5RXEEPROMReady(void);
+#ifdef ENABLE_K5RX_BANK_UI
+void SETTINGS_K5RXSetChannelScanList(channel_t channel, uint8_t listBit, bool enabled);
+#endif
 #endif
 
 void     SETTINGS_InitEEPROM(void);

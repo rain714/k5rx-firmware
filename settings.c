@@ -722,6 +722,24 @@ const SETTINGS_K5RX_ChannelRecord_t *SETTINGS_GetK5RXChannelRecord(channel_t cha
     return &gK5RXChannelCache[channel];
 }
 
+#ifdef ENABLE_K5RX_BANK_UI
+void SETTINGS_K5RXSetChannelScanList(channel_t channel, uint8_t listBit, bool enabled)
+{
+    if (!gK5RXHeaderValid || !IS_MR_CHANNEL(channel) ||
+        gK5RXChannelCache[channel].frequency == 0 || (listBit & ~EEPROM_K5RX_CHANNEL_SCAN_MASK) != 0)
+        return;
+
+    SETTINGS_K5RX_ChannelRecord_t *record = &gK5RXChannelCache[channel];
+    if (!!(record->scanListMask & listBit) != enabled) {
+        uint8_t data[EEPROM_K5RX_CHANNEL_RECORD_SIZE];
+        record->scanListMask ^= listBit;
+        SETTINGS_EncodeK5RXChannelRecord(data, record);
+        EEPROM_WriteBuffer(SETTINGS_K5RXChannelRecordOffset(channel), data);
+    }
+    gMR_ChannelAttributes[channel] = SETTINGS_K5RXChannelAttributes(record);
+}
+#endif
+
 bool SETTINGS_LoadK5RXChannel(channel_t channel, VFO_Info_t *pVFO)
 {
     const SETTINGS_K5RX_ChannelRecord_t *record = SETTINGS_GetK5RXChannelRecord(channel);
