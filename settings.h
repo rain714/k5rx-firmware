@@ -184,11 +184,25 @@ typedef struct {
     uint8_t               field8_0xb;
 
 #ifdef ENABLE_FMRADIO
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+    union {
+        struct {
+            uint16_t  FM_SelectedFrequency;
+            uint8_t   FM_SelectedChannel;
+            uint8_t   FM_IsMrMode : 1;
+            uint8_t   FM_Band     : 2;
+        };
+        uint8_t       FM_ConfigRaw[4];
+    };
+    uint16_t          FM_FrequencyPlaying;
+    uint8_t           FM_ConfigPadding;
+#else
     uint16_t          FM_SelectedFrequency;
     uint8_t           FM_SelectedChannel;
     bool              FM_IsMrMode;
     uint16_t          FM_FrequencyPlaying;
     uint8_t           FM_Band  : 2;
+#endif
     //uint8_t         FM_Space : 2;
 #endif
 

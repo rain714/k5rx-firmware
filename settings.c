@@ -793,6 +793,23 @@ static void SETTINGS_ResetK5RXMutable(bool bIsAll)
     SETTINGS_LoadK5RXChannelAttributes();
 }
 
+#ifdef ENABLE_FMRADIO
+static void SETTINGS_LoadK5RXFM(void)
+{
+    EEPROM_ReadBuffer(EEPROM_K5RX_FM_CONFIG_BASE, gEeprom.FM_ConfigRaw, sizeof(gEeprom.FM_ConfigRaw));
+    if (gEeprom.FM_SelectedFrequency == 0xFFFFu)
+        memset(gEeprom.FM_ConfigRaw, 0, sizeof(gEeprom.FM_ConfigRaw));
+
+    const uint16_t lo = BK1080_GetFreqLoLimit(gEeprom.FM_Band);
+    if (gEeprom.FM_SelectedFrequency < lo ||
+        gEeprom.FM_SelectedFrequency > BK1080_GetFreqHiLimit(gEeprom.FM_Band))
+        gEeprom.FM_SelectedFrequency = lo;
+
+    EEPROM_ReadBuffer(EEPROM_K5RX_FM_CHANNEL_BASE, gFM_Channels, sizeof(gFM_Channels));
+    FM_ConfigureChannelState();
+}
+#endif
+
 static void SETTINGS_InitK5RXEEPROM(void)
 {
     gK5RXHeaderValid = false;
@@ -812,6 +829,9 @@ static void SETTINGS_InitK5RXEEPROM(void)
         gEeprom.ScreenChannel[1] = gEeprom.MrChannel[1];
     }
     SETTINGS_LoadK5RXChannelAttributes();
+#ifdef ENABLE_FMRADIO
+    SETTINGS_LoadK5RXFM();
+#endif
 }
 #endif
 
@@ -1342,36 +1362,38 @@ void SETTINGS_FactoryReset(bool bIsAll)
 
 #ifdef ENABLE_FMRADIO
 void SETTINGS_SaveFM(void)
-    {
-        union {
-            struct {
-                uint16_t selFreq;
-                uint8_t  selChn;
-                uint8_t  isMrMode:1;
-                uint8_t  band:2;
-                //uint8_t  space:2;
-            };
-            uint8_t __raw[8];
-        } __attribute__((packed)) fmCfg;
-
-        memset(fmCfg.__raw, 0xFF, sizeof(fmCfg.__raw));
-        fmCfg.selChn   = gEeprom.FM_SelectedChannel;
-        fmCfg.selFreq  = gEeprom.FM_SelectedFrequency;
-        fmCfg.isMrMode = gEeprom.FM_IsMrMode;
-        fmCfg.band     = gEeprom.FM_Band;
-        //fmCfg.space    = gEeprom.FM_Space;
+{
 #ifdef ENABLE_K5RX_CUSTOM_EEPROM
-        if (!gK5RXHeaderValid)
-            return;
-        EEPROM_WriteBuffer(EEPROM_K5RX_FM_CONFIG_BASE, fmCfg.__raw);
-        for (unsigned i = 0; i < 5; i++)
-            EEPROM_WriteBuffer(EEPROM_K5RX_FM_CHANNEL_BASE + (i * 8), &gFM_Channels[i * 4]);
+    if (!gK5RXHeaderValid)
+        return;
+    const uint16_t channelBase = EEPROM_K5RX_FM_CHANNEL_BASE;
+    SETTINGS_WriteK5RXBytes(EEPROM_K5RX_FM_CONFIG_BASE, gEeprom.FM_ConfigRaw, sizeof(gEeprom.FM_ConfigRaw));
 #else
-        EEPROM_WriteBuffer(0x0E88, fmCfg.__raw);
-        for (unsigned i = 0; i < 5; i++)
-            EEPROM_WriteBuffer(0x0E40 + (i * 8), &gFM_Channels[i * 4]);
+    union {
+        struct {
+            uint16_t selFreq;
+            uint8_t  selChn;
+            uint8_t  isMrMode:1;
+            uint8_t  band:2;
+            //uint8_t  space:2;
+        };
+        uint8_t __raw[8];
+    } __attribute__((packed)) fmCfg;
+    const uint16_t configBase = EEPROM_FM_SETTINGS_BASE;
+    const uint16_t channelBase = EEPROM_FM_CHANNEL_BASE;
+
+    memset(fmCfg.__raw, 0xFF, sizeof(fmCfg.__raw));
+    fmCfg.selChn   = gEeprom.FM_SelectedChannel;
+    fmCfg.selFreq  = gEeprom.FM_SelectedFrequency;
+    fmCfg.isMrMode = gEeprom.FM_IsMrMode;
+    fmCfg.band     = gEeprom.FM_Band;
+    //fmCfg.space    = gEeprom.FM_Space;
+    EEPROM_WriteBuffer(configBase, fmCfg.__raw);
 #endif
-    }
+
+    for (unsigned i = 0; i < 5; i++)
+        EEPROM_WriteBuffer(channelBase + (i * 8), &gFM_Channels[i * 4]);
+}
 #endif
 
 void SETTINGS_SaveVfoIndices(void)

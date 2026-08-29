@@ -103,6 +103,7 @@ ifeq ($(BUILD_PROFILE),K5RX)
 	override ENABLE_K5RX_CUSTOM_EEPROM := 1
 	override ENABLE_K5RX_FAST_SCAN := 1
 	override ENABLE_K5RX_BANK_UI := 1
+	override ENABLE_FMRADIO := 1
 
 	# Transmit-only features are intentionally absent from the K5RX profile.
 	override ENABLE_AIRCOPY := 0
