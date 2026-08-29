@@ -3,6 +3,18 @@
 # 0 = disable
 # 1 = enable
 
+# Build profiles bundle a supported set of feature flags.
+# Keep profile selection separate from the individual feature macros used by C code.
+BUILD_PROFILE ?= DEFAULT
+SUPPORTED_BUILD_PROFILES := DEFAULT K5RX
+
+ifeq ($(filter $(BUILD_PROFILE),$(SUPPORTED_BUILD_PROFILES)),)
+$(error Unsupported BUILD_PROFILE '$(BUILD_PROFILE)'; supported profiles: $(SUPPORTED_BUILD_PROFILES))
+endif
+
+# Safety/capability flags are independent from profiles. Profiles only select defaults.
+DISABLE_TX ?= 0
+
 # ---- STOCK QUANSHENG FEATURES ----
 ENABLE_FMRADIO                  ?= 0
 ENABLE_UART                     ?= 1
@@ -82,6 +94,16 @@ ENABLE_LTO                      ?= 1
 ENABLE_EXPERIMENTAL_CLFAGS      ?= 1
 
 #############################################################
+
+ifeq ($(BUILD_PROFILE),K5RX)
+	override DISABLE_TX := 1
+
+	# Transmit-only features are intentionally absent from the K5RX profile.
+	override ENABLE_VOX := 0
+	override ENABLE_TX1750 := 0
+	override ENABLE_TX_WHEN_AM := 0
+	override ENABLE_REDUCE_LOW_MID_TX_POWER := 0
+endif
 
 ifeq ($(ENABLE_FEAT_F4HWN),1)
 	TARGET = f4hwn
@@ -312,6 +334,9 @@ CFLAGS += -Wextra
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
 CFLAGS += -DAUTHOR_STRING=\"$(AUTHOR_STRING)\" -DVERSION_STRING=\"$(VERSION_STRING)\"
 
+ifeq ($(DISABLE_TX),1)
+	CFLAGS += -DDISABLE_TX
+endif
 ifeq ($(ENABLE_SPECTRUM),1)
 CFLAGS += -DENABLE_SPECTRUM
 endif

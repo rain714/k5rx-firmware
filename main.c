@@ -101,6 +101,9 @@ void Main(void)
     gDTMF_String[sizeof(gDTMF_String) - 1] = 0;
 
     BK4819_Init();
+#ifdef DISABLE_TX
+    RADIO_ForceReceiveOnlyState();
+#endif
 
     BOARD_ADC_GetBatteryInfo(&gBatteryCurrentVoltage, &gBatteryCurrent);
 

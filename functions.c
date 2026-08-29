@@ -149,6 +149,10 @@ void FUNCTION_PowerSave() {
 
 void FUNCTION_Transmit()
 {
+#ifdef DISABLE_TX
+    RADIO_ForceReceiveOnlyState();
+    return;
+#else
     // if DTMF is enabled when TX'ing, it changes the TX audio filtering !! .. 1of11
     BK4819_DisableDTMF();
 
@@ -238,6 +242,7 @@ void FUNCTION_Transmit()
     if (gSetting_backlight_on_tx_rx & BACKLIGHT_ON_TR_TX) {
         BACKLIGHT_TurnOn();
     }
+#endif
 }
 
 
@@ -246,6 +251,13 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
 {
     const FUNCTION_Type_t PreviousFunction = gCurrentFunction;
     const bool bWasPowerSave = PreviousFunction == FUNCTION_POWER_SAVE;
+
+#ifdef DISABLE_TX
+    if (Function == FUNCTION_TRANSMIT) {
+        RADIO_ForceReceiveOnlyState();
+        Function = FUNCTION_FOREGROUND;
+    }
+#endif
 
     gCurrentFunction = Function;
 

@@ -172,6 +172,14 @@ uint16_t BK4819_ReadRegister(BK4819_REGISTER_t Register)
 
 void BK4819_WriteRegister(BK4819_REGISTER_t Register, uint16_t Data)
 {
+#ifdef DISABLE_TX
+    // Enforce the RF PA-off invariant at the lowest common register-write boundary.
+    if (Register == BK4819_REG_36)
+        Data = 0;
+    else if (Register == BK4819_REG_33)
+        Data &= ~(0x40u >> BK4819_GPIO1_PIN29_PA_ENABLE);
+#endif
+
     GPIO_SetBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCN);
     GPIO_ClearBit(&GPIOC->DATA, GPIOC_PIN_BK4819_SCL);
 
@@ -365,6 +373,11 @@ int16_t BK4819_GetRSSI_dBm(void)
 
 void BK4819_ToggleGpioOut(BK4819_GPIO_PIN_t Pin, bool bSet)
 {
+#ifdef DISABLE_TX
+    if (Pin == BK4819_GPIO1_PIN29_PA_ENABLE && bSet)
+        return;
+#endif
+
     if (bSet)
         gBK4819_GpioOutState |=  (0x40u >> Pin);
     else
@@ -660,6 +673,13 @@ void BK4819_SetFilterBandwidth(const BK4819_FilterBandwidth_t Bandwidth, const b
 
 void BK4819_SetupPowerAmplifier(const uint8_t bias, const uint32_t frequency)
 {
+#ifdef DISABLE_TX
+    (void)bias;
+    (void)frequency;
+    // Hard safety boundary: zero PA bias and disable PA control regardless of caller.
+    BK4819_WriteRegister(BK4819_REG_36, 0);
+    return;
+#else
     // REG_36 <15:8> 0 PA Bias output 0 ~ 3.2V
     //               255 = 3.2V
     //                 0 = 0V
@@ -680,6 +700,7 @@ void BK4819_SetupPowerAmplifier(const uint8_t bias, const uint32_t frequency)
     const uint8_t gain   = (frequency < 28000000) ? (1u << 3) | (0u << 0) : (4u << 3) | (2u << 0);
     const uint8_t enable = 1;
     BK4819_WriteRegister(BK4819_REG_36, (bias << 8) | (enable << 7) | (gain << 0));
+#endif
 }
 
 void BK4819_SetFrequency(uint32_t Frequency)
@@ -1122,9 +1143,14 @@ void BK4819_ExitBypass(void)
 
 void BK4819_PrepareTransmit(void)
 {
+#ifdef DISABLE_TX
+    BK4819_SetupPowerAmplifier(0, 0);
+    BK4819_RX_TurnOn();
+#else
     BK4819_ExitBypass();
     BK4819_ExitTxMute();
     BK4819_TxOn_Beep();
+#endif
 }
 
 void BK4819_TxOn_Beep(void)
@@ -1221,7 +1247,11 @@ void BK4819_EnableTXLink(void)
         BK4819_REG_30_ENABLE_AF_DAC    |
         BK4819_REG_30_ENABLE_DISC_MODE |
         BK4819_REG_30_ENABLE_PLL_VCO   |
+#ifdef DISABLE_TX
+        BK4819_REG_30_DISABLE_PA_GAIN  |
+#else
         BK4819_REG_30_ENABLE_PA_GAIN   |
+#endif
         BK4819_REG_30_DISABLE_MIC_ADC  |
         BK4819_REG_30_ENABLE_TX_DSP    |
         BK4819_REG_30_DISABLE_RX_DSP);

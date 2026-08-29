@@ -682,6 +682,17 @@ void RADIO_SelectVfos(void)
     RADIO_SelectCurrentVfo();
 }
 
+#ifdef DISABLE_TX
+void RADIO_ForceReceiveOnlyState(void)
+{
+    BK4819_DisableVox();
+    BK4819_SetupPowerAmplifier(0, 0);
+    BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
+    BK4819_ToggleGpioOut(BK4819_GPIO0_PIN28_RX_ENABLE, true);
+    BK4819_RX_TurnOn();
+}
+#endif
+
 void RADIO_SetupRegisters(bool switchToForeground)
 {
     BK4819_FilterBandwidth_t Bandwidth = gRxVfo->CHANNEL_BANDWIDTH;
@@ -718,9 +729,12 @@ void RADIO_SetupRegisters(bool switchToForeground)
 
     BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
 
+#ifdef DISABLE_TX
+    RADIO_ForceReceiveOnlyState();
+#else
     BK4819_SetupPowerAmplifier(0, 0);
-
     BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
+#endif
 
     while (1)
     {
@@ -921,6 +935,10 @@ void RADIO_SetupRegisters(bool switchToForeground)
 
 void RADIO_SetTxParameters(void)
 {
+#ifdef DISABLE_TX
+    RADIO_ForceReceiveOnlyState();
+    return;
+#else
     BK4819_FilterBandwidth_t Bandwidth = gCurrentVfo->CHANNEL_BANDWIDTH;
 
     #ifdef ENABLE_FEAT_F4HWN_NARROWER
@@ -988,6 +1006,7 @@ void RADIO_SetTxParameters(void)
             BK4819_SetCDCSSCodeWord(DCS_GetGolayCodeWord(gCurrentVfo->pTX->CodeType, gCurrentVfo->pTX->Code));
             break;
     }
+#endif
 }
 
 void RADIO_SetModulation(ModulationMode_t modulation)
@@ -1073,6 +1092,11 @@ void RADIO_SetVfoState(VfoState_t State)
 
 void RADIO_PrepareTX(void)
 {
+#ifdef DISABLE_TX
+    RADIO_ForceReceiveOnlyState();
+    RADIO_SetVfoState(VFO_STATE_TX_DISABLE);
+    return;
+#else
     VfoState_t State = VFO_STATE_NORMAL;  // default to OK to TX
 
     if (gEeprom.DUAL_WATCH != DUAL_WATCH_OFF)
@@ -1198,10 +1222,15 @@ void RADIO_PrepareTX(void)
 #ifdef ENABLE_DTMF_CALLING
     gDTMF_ReplyState     = DTMF_REPLY_NONE;
 #endif
+#endif
 }
 
 void RADIO_SendCssTail(void)
 {
+#ifdef DISABLE_TX
+    RADIO_ForceReceiveOnlyState();
+    return;
+#else
     switch (gCurrentVfo->pTX->CodeType) {
     case CODE_TYPE_DIGITAL:
     case CODE_TYPE_REVERSE_DIGITAL:
@@ -1213,10 +1242,15 @@ void RADIO_SendCssTail(void)
     }
 
     SYSTEM_DelayMs(200);
+#endif
 }
 
 void RADIO_SendEndOfTransmission(void)
 {
+#ifdef DISABLE_TX
+    RADIO_ForceReceiveOnlyState();
+    return;
+#else
     BK4819_PlayRoger();
     DTMF_SendEndOfTransmission();
 
@@ -1224,10 +1258,15 @@ void RADIO_SendEndOfTransmission(void)
     if(gEeprom.TAIL_TONE_ELIMINATION)
         RADIO_SendCssTail();
     RADIO_SetupRegisters(false);
+#endif
 }
 
 void RADIO_PrepareCssTX(void)
 {
+#ifdef DISABLE_TX
+    RADIO_ForceReceiveOnlyState();
+    return;
+#else
     RADIO_PrepareTX();
 
     SYSTEM_DelayMs(200);
@@ -1235,4 +1274,5 @@ void RADIO_PrepareCssTX(void)
     if(gEeprom.TAIL_TONE_ELIMINATION)
         RADIO_SendCssTail();
     RADIO_SetupRegisters(true);
+#endif
 }
