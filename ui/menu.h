@@ -167,8 +167,10 @@ enum
 extern const uint8_t FIRST_HIDDEN_MENU_ITEM;
 extern const t_menu_item MenuList[];
 
+#ifndef DISABLE_TX
 extern const char        gSubMenu_TXP[8][6];
 extern const char        gSubMenu_SFT_D[3][4];
+#endif
 extern const char        gSubMenu_W_N[2][7];
 extern const char        gSubMenu_OFF_ON[2][4];
 extern const char        gSubMenu_NA[4];
@@ -187,9 +189,11 @@ extern const char        gSubMenu_D_RSP[4][11];
 #endif
 
 #ifdef ENABLE_FEAT_F4HWN
+#ifndef DISABLE_TX
     extern const char    gSubMenu_SET_PWR[7][6];
     extern const char    gSubMenu_SET_PTT[2][8];
     extern const char    gSubMenu_SET_TOT[4][7];
+#endif
     extern const char    gSubMenu_SET_LCK[2][9];
     extern const char    gSubMenu_SET_MET[2][8];
     #ifdef ENABLE_FEAT_F4HWN_NARROWER
@@ -200,15 +204,21 @@ extern const char        gSubMenu_D_RSP[4][11];
     #endif
 #endif
 
+#ifndef DISABLE_TX
 extern const char* const gSubMenu_PTT_ID[5];
+#endif
 #ifdef ENABLE_FEAT_F4HWN
     extern const char        gSubMenu_PONMSG[5][8];
 #else
     extern const char        gSubMenu_PONMSG[4][8];
 #endif
+#ifndef DISABLE_TX
 extern const char        gSubMenu_ROGER[3][6];
+#endif
 extern const char        gSubMenu_RESET[2][4];
+#ifndef DISABLE_TX
 extern const char* const gSubMenu_F_LOCK[F_LOCK_LEN];
+#endif
 extern const char        gSubMenu_RX_TX[4][6];
 extern const char        gSubMenu_BAT_TXT[3][8];
 extern const char        gSubMenu_BATTYP[3][9];

@@ -46,7 +46,9 @@
     #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
 
+#ifndef DISABLE_TX
 uint8_t gUnlockAllTxConfCnt;
+#endif
 
 #ifdef ENABLE_F_CAL_MENU
     void writeXtalFreqCal(const int32_t value, const bool update_eeprom)
@@ -142,16 +144,19 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             *pMax = 10;
             break;
 
+#ifndef DISABLE_TX
         case MENU_F_LOCK:
             //*pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_F_LOCK) - 1;
             break;
+#endif
 
         case MENU_MDF:
             //*pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_MDF) - 1;
             break;
 
+#ifndef DISABLE_TX
         case MENU_TXP:
             //*pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_TXP) - 1;
@@ -161,6 +166,7 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             //*pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_SFT_D) - 1;
             break;
+#endif
 
         case MENU_TDR:
             //*pMin = 0;
@@ -185,10 +191,12 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             *pMax = 104;
             break;
 
+#ifndef DISABLE_TX
         case MENU_ROGER:
             //*pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_ROGER) - 1;
             break;
+#endif
 
         case MENU_PONMSG:
             //*pMin = 0;
@@ -196,14 +204,18 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             break;
 
         case MENU_R_DCS:
+#ifndef DISABLE_TX
         case MENU_T_DCS:
+#endif
             //*pMin = 0;
             *pMax = 208;
             //*pMax = (ARRAY_SIZE(DCS_Options) * 2);
             break;
 
         case MENU_R_CTCS:
+#ifndef DISABLE_TX
         case MENU_T_CTCS:
+#endif
             //*pMin = 0;
             *pMax = ARRAY_SIZE(CTCSS_Options);
             break;
@@ -236,16 +248,20 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
                 case MENU_AM_FIX:
             #endif
         #endif
+#ifndef DISABLE_TX
         #ifdef ENABLE_AUDIO_BAR
             case MENU_MIC_BAR:
         #endif
         case MENU_BCL:
+#endif
         case MENU_BEEP:
         case MENU_S_ADD1:
         case MENU_S_ADD2:
         case MENU_S_ADD3:
+#ifndef DISABLE_TX
         case MENU_STE:
         case MENU_D_ST:
+#endif
 #ifdef ENABLE_DTMF_CALLING
         case MENU_D_DCD:
 #endif
@@ -284,6 +300,7 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             *pMax = 40;
             break;
 
+#ifndef DISABLE_TX
         case MENU_TOT:
             //*pMin = 0;
             *pMin = 5;
@@ -297,6 +314,7 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             //*pMin = 0;
             *pMax = 10;
             break;
+#endif
 
         case MENU_MEM_CH:
         case MENU_1_CALL:
@@ -318,10 +336,12 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             *pMax = 5;
             break;
 
+#ifndef DISABLE_TX
         case MENU_MIC:
             //*pMin = 0;
             *pMax = 4;
             break;
+#endif
 
         case MENU_S_LIST:
             //*pMin = 0;
@@ -334,10 +354,12 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             *pMax = ARRAY_SIZE(gSubMenu_D_RSP) - 1;
             break;
 #endif
+#ifndef DISABLE_TX
         case MENU_PTT_ID:
             //*pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_PTT_ID) - 1;
             break;
+#endif
 
         case MENU_BAT_TXT:
             //*pMin = 0;
@@ -350,10 +372,12 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             *pMax = 60;
             break;
 #endif
+#ifndef DISABLE_TX
         case MENU_D_PRE:
             *pMin = 3;
             *pMax = 99;
             break;
+#endif
 
 #ifdef ENABLE_DTMF_CALLING
         case MENU_D_LIST:
@@ -394,6 +418,7 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
 #endif
 
 #ifdef ENABLE_FEAT_F4HWN
+#ifndef DISABLE_TX
         case MENU_SET_PWR:
             *pMax = ARRAY_SIZE(gSubMenu_SET_PWR) - 1;
             break;
@@ -406,13 +431,16 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             //*pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_SET_TOT) - 1;
             break;
+#endif
 #ifdef ENABLE_FEAT_F4HWN_CTR
         case MENU_SET_CTR:
             *pMin = 1;
             *pMax = 15;
             break;
 #endif
+#ifndef DISABLE_TX
         case MENU_TX_LOCK:
+#endif
 #ifdef ENABLE_FEAT_F4HWN_INV
         case MENU_SET_INV:
             //*pMin = 0;
@@ -489,15 +517,18 @@ void MENU_AcceptSetting(void)
             }
             return;
 
+#ifndef DISABLE_TX
         case MENU_TXP:
             gTxVfo->OUTPUT_POWER = gSubMenuSelection;
             gRequestSaveChannel = 1;
             return;
+#endif
 
+#ifndef DISABLE_TX
         case MENU_T_DCS:
             pConfig = &gTxVfo->freq_config_TX;
-
-            // Fallthrough
+            [[fallthrough]];
+#endif
 
         case MENU_R_DCS: {
             if (gSubMenuSelection == 0) {
@@ -519,9 +550,11 @@ void MENU_AcceptSetting(void)
             gRequestSaveChannel = 1;
             return;
         }
+#ifndef DISABLE_TX
         case MENU_T_CTCS:
             pConfig = &gTxVfo->freq_config_TX;
             [[fallthrough]];
+#endif
         case MENU_R_CTCS: {
             if (gSubMenuSelection == 0) {
                 if (pConfig->CodeType != CODE_TYPE_CONTINUOUS_TONE) {
@@ -538,6 +571,7 @@ void MENU_AcceptSetting(void)
             gRequestSaveChannel = 1;
             return;
         }
+#ifndef DISABLE_TX
         case MENU_SFT_D:
             gTxVfo->TX_OFFSET_FREQUENCY_DIRECTION = gSubMenuSelection;
             gRequestSaveChannel                   = 1;
@@ -547,6 +581,7 @@ void MENU_AcceptSetting(void)
             gTxVfo->TX_OFFSET_FREQUENCY = gSubMenuSelection;
             gRequestSaveChannel         = 1;
             return;
+#endif
 
         case MENU_W_N:
             gTxVfo->CHANNEL_BANDWIDTH = gSubMenuSelection;
@@ -566,10 +601,12 @@ void MENU_AcceptSetting(void)
             return;
 #endif
 
+#ifndef DISABLE_TX
         case MENU_BCL:
             gTxVfo->BUSY_CHANNEL_LOCK = gSubMenuSelection;
             gRequestSaveChannel       = 1;
             return;
+#endif
 
         case MENU_MEM_CH:
             gTxVfo->CHANNEL_SAVE = gSubMenuSelection;
@@ -647,9 +684,11 @@ void MENU_AcceptSetting(void)
             gEeprom.BEEP_CONTROL = gSubMenuSelection;
             break;
 
+#ifndef DISABLE_TX
         case MENU_TOT:
             gEeprom.TX_TIMEOUT_TIMER = gSubMenuSelection;
             break;
+#endif
 
         #ifdef ENABLE_VOICE
             case MENU_VOICE:
@@ -698,6 +737,7 @@ void MENU_AcceptSetting(void)
             gFlagResetVfos    = true;
             return;
 
+#ifndef DISABLE_TX
         case MENU_STE:
             gEeprom.TAIL_TONE_ELIMINATION = gSubMenuSelection;
             break;
@@ -717,6 +757,7 @@ void MENU_AcceptSetting(void)
                 gSetting_mic_bar = gSubMenuSelection;
                 break;
         #endif
+#endif
 
         case MENU_COMPAND:
             gTxVfo->Compander = gSubMenuSelection;
@@ -740,9 +781,11 @@ void MENU_AcceptSetting(void)
                 break;
         #endif
 
+#ifndef DISABLE_TX
         case MENU_D_ST:
             gEeprom.DTMF_SIDE_TONE = gSubMenuSelection;
             break;
+#endif
 
 #ifdef ENABLE_DTMF_CALLING
         case MENU_D_RSP:
@@ -753,6 +796,7 @@ void MENU_AcceptSetting(void)
             gEeprom.DTMF_auto_reset_time = gSubMenuSelection;
             break;
 #endif
+#ifndef DISABLE_TX
         case MENU_D_PRE:
             gEeprom.DTMF_PRELOAD_TIME = gSubMenuSelection * 10;
             break;
@@ -761,6 +805,7 @@ void MENU_AcceptSetting(void)
             gTxVfo->DTMF_PTT_ID_TX_MODE = gSubMenuSelection;
             gRequestSaveChannel         = 1;
             return;
+#endif
 
         case MENU_BAT_TXT:
             gSetting_battery_text = gSubMenuSelection;
@@ -801,9 +846,11 @@ void MENU_AcceptSetting(void)
             gEeprom.POWER_ON_DISPLAY_MODE = gSubMenuSelection;
             break;
 
+#ifndef DISABLE_TX
         case MENU_ROGER:
             gEeprom.ROGER = gSubMenuSelection;
             break;
+#endif
 
         case MENU_AM:
             gTxVfo->Modulation     = gSubMenuSelection;
@@ -843,6 +890,7 @@ void MENU_AcceptSetting(void)
             break;
 #endif
 
+#ifndef DISABLE_TX
         case MENU_F_LOCK: {
             if(gSubMenuSelection == F_LOCK_NONE) { // select 10 times to enable
                 gUnlockAllTxConfCnt++;
@@ -865,6 +913,7 @@ void MENU_AcceptSetting(void)
             #endif
             break;
         }
+#endif
 #ifndef ENABLE_FEAT_F4HWN
         case MENU_200TX:
             gSetting_200TX = gSubMenuSelection;
@@ -931,6 +980,7 @@ void MENU_AcceptSetting(void)
 #endif
 
 #ifdef ENABLE_FEAT_F4HWN
+#ifndef DISABLE_TX
         case MENU_SET_PWR:
             gSetting_set_pwr = gSubMenuSelection;
             gRequestSaveChannel = 1;
@@ -945,6 +995,7 @@ void MENU_AcceptSetting(void)
         case MENU_SET_EOT:
             gSetting_set_eot = gSubMenuSelection;
             break;
+#endif
 #ifdef ENABLE_FEAT_F4HWN_CTR
         case MENU_SET_CTR:
             gSetting_set_ctr = gSubMenuSelection;
@@ -965,7 +1016,9 @@ void MENU_AcceptSetting(void)
         #ifdef ENABLE_FEAT_F4HWN_NARROWER
             case MENU_SET_NFM:
                 gSetting_set_nfm = gSubMenuSelection;
+#ifndef DISABLE_TX
                 RADIO_SetTxParameters();
+#endif
                 RADIO_SetupRegisters(true);
                 break;
         #endif
@@ -982,10 +1035,12 @@ void MENU_AcceptSetting(void)
         case MENU_SET_TMR:
             gSetting_set_tmr = gSubMenuSelection;
             break;
+#ifndef DISABLE_TX
         case MENU_TX_LOCK:
             gTxVfo->TX_LOCK = gSubMenuSelection;
             gRequestSaveChannel       = 1;
             return;
+#endif
 #endif
     }
 
@@ -1019,9 +1074,11 @@ void MENU_ShowCurrentSetting(void)
             gSubMenuSelection = FREQUENCY_GetSortedIdxFromStepIdx(gTxVfo->STEP_SETTING);
             break;
 
+#ifndef DISABLE_TX
         case MENU_TXP:
             gSubMenuSelection = gTxVfo->OUTPUT_POWER;
             break;
+#endif
 
         case MENU_RESET:
             gSubMenuSelection = 0;
@@ -1059,6 +1116,7 @@ void MENU_ShowCurrentSetting(void)
         break;
         }
 
+#ifndef DISABLE_TX
         case MENU_T_DCS:
             switch (gTxVfo->freq_config_TX.CodeType)
             {
@@ -1085,6 +1143,7 @@ void MENU_ShowCurrentSetting(void)
         case MENU_OFFSET:
             gSubMenuSelection = gTxVfo->TX_OFFSET_FREQUENCY;
             break;
+#endif
 
         case MENU_W_N:
             gSubMenuSelection = gTxVfo->CHANNEL_BANDWIDTH;
@@ -1096,9 +1155,11 @@ void MENU_ShowCurrentSetting(void)
             break;
 #endif
 
+#ifndef DISABLE_TX
         case MENU_BCL:
             gSubMenuSelection = gTxVfo->BUSY_CHANNEL_LOCK;
             break;
+#endif
 
         case MENU_MEM_CH:
             #if 0
@@ -1116,7 +1177,7 @@ void MENU_ShowCurrentSetting(void)
             gSubMenuSelection = gEeprom.BATTERY_SAVE;
             break;
 
-#ifdef ENABLE_VOX
+#if defined(ENABLE_VOX) && !defined(DISABLE_TX)
         case MENU_VOX:
             gSubMenuSelection = gEeprom.VOX_SWITCH ? gEeprom.VOX_LEVEL + 1 : 0;
             break;
@@ -1157,9 +1218,11 @@ void MENU_ShowCurrentSetting(void)
             gSubMenuSelection = gEeprom.BEEP_CONTROL;
             break;
 
+#ifndef DISABLE_TX
         case MENU_TOT:
             gSubMenuSelection = gEeprom.TX_TIMEOUT_TIMER;
             break;
+#endif
 
 #ifdef ENABLE_VOICE
         case MENU_VOICE:
@@ -1197,6 +1260,7 @@ void MENU_ShowCurrentSetting(void)
             gSubMenuSelection = gTxVfo->SCANLIST3_PARTICIPATION;
             break;
 
+#ifndef DISABLE_TX
         case MENU_STE:
             gSubMenuSelection = gEeprom.TAIL_TONE_ELIMINATION;
             break;
@@ -1213,6 +1277,7 @@ void MENU_ShowCurrentSetting(void)
         case MENU_MIC_BAR:
             gSubMenuSelection = gSetting_mic_bar;
             break;
+#endif
 #endif
 
         case MENU_COMPAND:
@@ -1239,9 +1304,11 @@ void MENU_ShowCurrentSetting(void)
                 break;
         #endif
 
+#ifndef DISABLE_TX
         case MENU_D_ST:
             gSubMenuSelection = gEeprom.DTMF_SIDE_TONE;
             break;
+#endif
 
 #ifdef ENABLE_DTMF_CALLING
         case MENU_D_RSP:
@@ -1252,6 +1319,7 @@ void MENU_ShowCurrentSetting(void)
             gSubMenuSelection = gEeprom.DTMF_auto_reset_time;
             break;
 #endif
+#ifndef DISABLE_TX
         case MENU_D_PRE:
             gSubMenuSelection = gEeprom.DTMF_PRELOAD_TIME / 10;
             break;
@@ -1259,6 +1327,7 @@ void MENU_ShowCurrentSetting(void)
         case MENU_PTT_ID:
             gSubMenuSelection = gTxVfo->DTMF_PTT_ID_TX_MODE;
             break;
+#endif
 
         case MENU_BAT_TXT:
             gSubMenuSelection = gSetting_battery_text;
@@ -1281,9 +1350,11 @@ void MENU_ShowCurrentSetting(void)
             gSubMenuSelection = gEeprom.POWER_ON_DISPLAY_MODE;
             break;
 
+#ifndef DISABLE_TX
         case MENU_ROGER:
             gSubMenuSelection = gEeprom.ROGER;
             break;
+#endif
 
         case MENU_AM:
             gSubMenuSelection = gTxVfo->Modulation;
@@ -1317,9 +1388,11 @@ void MENU_ShowCurrentSetting(void)
             break;
 #endif
 
+#ifndef DISABLE_TX
         case MENU_F_LOCK:
             gSubMenuSelection = gSetting_F_LOCK;
             break;
+#endif
 
 #ifndef ENABLE_FEAT_F4HWN
         case MENU_200TX:
@@ -1386,6 +1459,7 @@ void MENU_ShowCurrentSetting(void)
 #endif
 
 #ifdef ENABLE_FEAT_F4HWN
+#ifndef DISABLE_TX
         case MENU_SET_PWR:
             gSubMenuSelection = gSetting_set_pwr;
             break;
@@ -1398,6 +1472,7 @@ void MENU_ShowCurrentSetting(void)
         case MENU_SET_EOT:
             gSubMenuSelection = gSetting_set_eot;
             break;
+#endif
 #ifdef ENABLE_FEAT_F4HWN_CTR
         case MENU_SET_CTR:
             gSubMenuSelection = gSetting_set_ctr;
@@ -1433,9 +1508,11 @@ void MENU_ShowCurrentSetting(void)
         case MENU_SET_TMR:
             gSubMenuSelection = gSetting_set_tmr;
             break;
+#ifndef DISABLE_TX
         case MENU_TX_LOCK:
             gSubMenuSelection = gTxVfo->TX_LOCK;
             break;
+#endif
 #endif
 
         default:

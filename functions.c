@@ -89,8 +89,12 @@ void FUNCTION_Init(void)
 void FUNCTION_Foreground(const FUNCTION_Type_t PreviousFunction)
 {
 #ifdef ENABLE_DTMF_CALLING
+#ifdef DISABLE_TX
+    gDTMF_ReplyState = DTMF_REPLY_NONE;
+#else
     if (gDTMF_ReplyState != DTMF_REPLY_NONE)
         RADIO_PrepareCssTX();
+#endif
 #endif
 
 #ifdef DISABLE_TX
@@ -152,12 +156,9 @@ void FUNCTION_PowerSave() {
         GUI_SelectNextDisplay(DISPLAY_MAIN);
 }
 
+#ifndef DISABLE_TX
 void FUNCTION_Transmit()
 {
-#ifdef DISABLE_TX
-    RADIO_ForceReceiveOnlyState();
-    return;
-#else
     // if DTMF is enabled when TX'ing, it changes the TX audio filtering !! .. 1of11
     BK4819_DisableDTMF();
 
@@ -247,8 +248,8 @@ void FUNCTION_Transmit()
     if (gSetting_backlight_on_tx_rx & BACKLIGHT_ON_TR_TX) {
         BACKLIGHT_TurnOn();
     }
-#endif
 }
+#endif
 
 
 
@@ -308,9 +309,12 @@ void FUNCTION_Select(FUNCTION_Type_t Function)
         return;
     }
 
+#ifndef DISABLE_TX
     if (Function == FUNCTION_TRANSMIT) {
         FUNCTION_Transmit();
-    } else if (Function == FUNCTION_MONITOR) {
+    } else
+#endif
+    if (Function == FUNCTION_MONITOR) {
         gMonitor = true;
     }
 

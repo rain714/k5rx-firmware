@@ -97,8 +97,10 @@ void Main(void)
 
     // Not implementing authentic device checks
 
+#ifndef DISABLE_TX
     memset(gDTMF_String, '-', sizeof(gDTMF_String));
     gDTMF_String[sizeof(gDTMF_String) - 1] = 0;
+#endif
 
     BK4819_Init();
 #ifdef DISABLE_TX
@@ -123,6 +125,9 @@ void Main(void)
     RADIO_SelectVfos();
 
     RADIO_SetupRegisters(true);
+#ifdef DISABLE_TX
+    RADIO_ForceReceiveOnlyState();
+#endif
 
     for (unsigned int i = 0; i < ARRAY_SIZE(gBatteryVoltages); i++)
         BOARD_ADC_GetBatteryInfo(&gBatteryVoltages[i], &gBatteryCurrent);

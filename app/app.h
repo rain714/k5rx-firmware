@@ -23,7 +23,9 @@
 #include "frequencies.h"
 #include "radio.h"
 
+#ifndef DISABLE_TX
 void     APP_EndTransmission(void);
+#endif
 void     APP_StartListening(FUNCTION_Type_t function);
 uint32_t APP_SetFreqByStepAndLimits(VFO_Info_t *pInfo, int8_t direction, uint32_t lower, uint32_t upper);
 uint32_t APP_SetFrequencyByStep(VFO_Info_t *pInfo, int8_t direction);

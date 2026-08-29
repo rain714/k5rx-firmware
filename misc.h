@@ -277,13 +277,17 @@ extern volatile uint8_t      gSerialConfigCountDown_500ms;
 
 extern volatile bool         gNextTimeslice_500ms;
 
+#ifndef DISABLE_TX
 extern volatile uint16_t     gTxTimerCountdown_500ms;
 extern volatile bool         gTxTimeoutReached;
+#endif
 
 #ifdef ENABLE_FEAT_F4HWN
+#ifndef DISABLE_TX
     extern volatile uint16_t gTxTimerCountdownAlert_500ms;
     extern volatile bool     gTxTimeoutReachedAlert;
     extern volatile uint16_t gTxTimeoutToneAlert;
+#endif
     #ifdef ENABLE_FEAT_F4HWN_RX_TX_TIMER
         extern volatile uint16_t gRxTimerCountdown_500ms;
     #endif
@@ -300,7 +304,9 @@ extern volatile uint16_t     gTailNoteEliminationCountdown_10ms;
 extern bool                  gEnableSpeaker;
 extern uint8_t               gKeyInputCountdown;
 extern uint8_t               gKeyLockCountdown;
+#ifndef DISABLE_TX
 extern uint8_t               gRTTECountdown_10ms;
+#endif
 extern bool                  bIsInLockScreen;
 extern uint8_t               gUpdateStatus;
 extern uint8_t               gFoundCTCSS;
@@ -342,7 +348,9 @@ extern bool                  gRequestSaveSettings;
     extern bool              gRequestSaveFM;
 #endif
 extern uint8_t               gKeypadLocked;
+#ifndef DISABLE_TX
 extern bool                  gFlagPrepareTX;
+#endif
 
 extern bool                  gFlagAcceptSetting;   // accept menu setting
 extern bool                  gFlagRefreshSetting;  // refresh menu display
@@ -366,7 +374,9 @@ extern bool                  g_SquelchLost;
 
 extern volatile uint16_t     gFlashLightBlinkCounter;
 
+#ifndef DISABLE_TX
 extern bool                  gFlagEndTransmission;
+#endif
 extern channel_t             gNextMrChannel;
 extern ReceptionMode_t       gRxReceptionMode;
 

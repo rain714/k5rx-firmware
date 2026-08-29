@@ -808,6 +808,7 @@ static void CheckRadioInterrupts(void)
     }
 }
 
+#ifndef DISABLE_TX
 void APP_EndTransmission(void)
 {
     // back to RX mode
@@ -820,6 +821,7 @@ void APP_EndTransmission(void)
         gFlagReconfigureVfos = true;
     }
 }
+#endif
 
 #ifdef ENABLE_VOX
 static void HandleVox(void)
@@ -904,6 +906,7 @@ void APP_Update(void)
     }
 #endif
 
+#ifndef DISABLE_TX
 #ifdef ENABLE_FEAT_F4HWN
     if (gCurrentFunction == FUNCTION_TRANSMIT && (gTxTimeoutReachedAlert || SerialConfigInProgress()))
     {
@@ -993,6 +996,7 @@ void APP_Update(void)
 
         GUI_DisplayScreen();
     }
+#endif
 
     if (gReducedService)
         return;
@@ -1001,8 +1005,12 @@ void APP_Update(void)
     CHFRSCANNER_FastAppUpdate();
     if (!CHFRSCANNER_FastActive())
 #endif
+#ifdef DISABLE_TX
+        HandleFunction();
+#else
         if (gCurrentFunction != FUNCTION_TRANSMIT)
             HandleFunction();
+#endif
 
 #ifdef ENABLE_FMRADIO
 //  if (gFmRadioCountdown_500ms > 0)
@@ -1183,7 +1191,7 @@ static void CheckKeys(void)
 #endif
 
 // -------------------- PTT ------------------------
-#ifdef ENABLE_FEAT_F4HWN
+#if defined(ENABLE_FEAT_F4HWN) && !defined(DISABLE_TX)
     if (gSetting_set_ptt_session)
     {
         if (!GPIO_CheckBit(&GPIOC->DATA, GPIOC_PIN_PTT) && !SerialConfigInProgress() && gPttOnePushCounter == 0)
@@ -1434,6 +1442,7 @@ void APP_TimeSlice10ms(void)
         gVoxPauseCountdown--;
 #endif
 
+#ifndef DISABLE_TX
     if (gCurrentFunction == FUNCTION_TRANSMIT) {
 #ifdef ENABLE_ALARM
         if (gAlarmState == ALARM_STATE_TXALARM || gAlarmState == ALARM_STATE_SITE_ALARM) {
@@ -1493,6 +1502,7 @@ void APP_TimeSlice10ms(void)
             }
         }
     }
+#endif
 
 #ifdef ENABLE_FMRADIO
     if (gFmRadioMode && gFM_RestoreCountdown_10ms > 0) {
@@ -1519,6 +1529,7 @@ void APP_TimeSlice10ms(void)
 
 void cancelUserInputModes(void)
 {
+#ifndef DISABLE_TX
     if (gDTMF_InputMode || gDTMF_InputBox_Index > 0)
     {
         DTMF_clear_input_box();
@@ -1526,6 +1537,7 @@ void cancelUserInputModes(void)
         gRequestDisplayScreen = DISPLAY_MAIN;
         gUpdateDisplay        = true;
     }
+#endif
 
     if (gWasFKeyPressed || gKeyInputCountdown > 0 || gInputBoxIndex > 0)
     {
@@ -1628,9 +1640,17 @@ void APP_TimeSlice500ms(void)
     }
 
     #ifdef ENABLE_AIRCOPY
-    if(gCurrentFunction != FUNCTION_TRANSMIT && !FUNCTION_IsRx() && gScreenToDisplay != DISPLAY_AIRCOPY)
+    if(
+#ifndef DISABLE_TX
+        gCurrentFunction != FUNCTION_TRANSMIT &&
+#endif
+        !FUNCTION_IsRx() && gScreenToDisplay != DISPLAY_AIRCOPY)
     #else
-    if(gCurrentFunction != FUNCTION_TRANSMIT && !FUNCTION_IsRx())
+    if(
+#ifndef DISABLE_TX
+        gCurrentFunction != FUNCTION_TRANSMIT &&
+#endif
+        !FUNCTION_IsRx())
     #endif
     {
         if (gSleepModeCountdown_500ms > 0 && --gSleepModeCountdown_500ms == 0) {
@@ -1716,7 +1736,10 @@ void APP_TimeSlice500ms(void)
         && gScreenToDisplay != DISPLAY_AIRCOPY
 #endif
     ) {
-        if (gEeprom.AUTO_KEYPAD_LOCK && gKeyLockCountdown > 0 && !gDTMF_InputMode
+        if (gEeprom.AUTO_KEYPAD_LOCK && gKeyLockCountdown > 0
+#ifndef DISABLE_TX
+            && !gDTMF_InputMode
+#endif
             && gScreenToDisplay != DISPLAY_MENU && --gKeyLockCountdown == 0)
         {
             gEeprom.KEY_LOCK = true;     // lock the keyboard
@@ -1730,7 +1753,11 @@ void APP_TimeSlice500ms(void)
                 BACKLIGHT_TurnOff();
             }
 
-            if (gInputBoxIndex > 0 || gDTMF_InputMode) {
+            if (gInputBoxIndex > 0
+#ifndef DISABLE_TX
+                || gDTMF_InputMode
+#endif
+            ) {
                 AUDIO_PlayBeep(BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL);
             }
 /*
@@ -1743,7 +1770,9 @@ void APP_TimeSlice500ms(void)
                 RADIO_SetupRegisters(true);
             }
 */
+#ifndef DISABLE_TX
             DTMF_clear_input_box();
+#endif
 
             gWasFKeyPressed  = false;
             gInputBoxIndex   = 0;
@@ -2062,6 +2091,7 @@ static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
         goto Skip;
     }
 
+#ifndef DISABLE_TX
     if (gCurrentFunction == FUNCTION_TRANSMIT) {
 #if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
         if (gAlarmState == ALARM_STATE_OFF)
@@ -2132,15 +2162,24 @@ static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
         }
 #endif
     }
+#endif
 #ifdef ENABLE_FEAT_F4HWN // For F + SIDE1 or F + SIDE2
+#ifdef DISABLE_TX
+    if (gWasFKeyPressed && (Key == KEY_SIDE1 || Key == KEY_SIDE2)) {
+#else
     else if (gWasFKeyPressed && (Key == KEY_SIDE1 || Key == KEY_SIDE2)) {
+#endif
         ProcessKeysFunctions[gScreenToDisplay](Key, bKeyPressed, bKeyHeld);
     }
     else if (Key != KEY_SIDE1 && Key != KEY_SIDE2 && gScreenToDisplay != DISPLAY_INVALID) {
         ProcessKeysFunctions[gScreenToDisplay](Key, bKeyPressed, bKeyHeld);
     }
 #else
+#ifdef DISABLE_TX
+    if (Key != KEY_SIDE1 && Key != KEY_SIDE2 && gScreenToDisplay != DISPLAY_INVALID) {
+#else
     else if (Key != KEY_SIDE1 && Key != KEY_SIDE2 && gScreenToDisplay != DISPLAY_INVALID) {
+#endif
         ProcessKeysFunctions[gScreenToDisplay](Key, bKeyPressed, bKeyHeld);
     }
 #endif
@@ -2264,10 +2303,12 @@ Skip:
         MENU_ShowCurrentSetting();
     }
 
+#ifndef DISABLE_TX
     if (gFlagPrepareTX) {
         RADIO_PrepareTX();
         gFlagPrepareTX = false;
     }
+#endif
 
 #ifdef ENABLE_VOICE
     if (gAnotherVoiceID != VOICE_ID_INVALID) {

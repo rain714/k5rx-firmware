@@ -248,9 +248,11 @@ static void processFKeyFunction(const KEY_Code_t Key, const bool beep)
 
             break;
 
+#ifndef DISABLE_TX
         case KEY_6:
             ACTION_Power();
             break;
+#endif
 
         case KEY_7:
 #ifdef ENABLE_VOX
@@ -656,11 +658,16 @@ static void MAIN_Key_EXIT(bool bKeyPressed, bool bKeyHeld)
     }
 
     if (bKeyHeld && bKeyPressed) { // exit key held down
-        if (gInputBoxIndex > 0 || gDTMF_InputBox_Index > 0 || gDTMF_InputMode)
-        {   // cancel key input mode (channel/frequency entry)
+        if (gInputBoxIndex > 0
+#ifndef DISABLE_TX
+            || gDTMF_InputBox_Index > 0 || gDTMF_InputMode
+#endif
+        ) {   // cancel key input mode (channel/frequency entry)
+#ifndef DISABLE_TX
             gDTMF_InputMode       = false;
             gDTMF_InputBox_Index  = 0;
             memset(gDTMF_String, 0, sizeof(gDTMF_String));
+#endif
             gInputBoxIndex        = 0;
             gRequestDisplayScreen = DISPLAY_MAIN;
             gBeepToPlay           = BEEP_1KHZ_60MS_OPTIONAL;
@@ -714,7 +721,11 @@ static void MAIN_Key_MENU(bool bKeyPressed, bool bKeyHeld)
         return;
     }
 
-    if (!bKeyPressed && !gDTMF_InputMode) { // menu key released
+    if (!bKeyPressed
+#ifndef DISABLE_TX
+        && !gDTMF_InputMode
+#endif
+    ) { // menu key released
         const bool bFlag = !gInputBoxIndex;
         gInputBoxIndex   = 0;
 
@@ -794,7 +805,10 @@ static void MAIN_Key_STAR(bool bKeyPressed, bool bKeyHeld)
     // just released
     
     if (!gWasFKeyPressed) // pressed without the F-key
-    {   
+    {
+#ifdef DISABLE_TX
+        gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+#else
         if (gScanStateDir == SCAN_OFF 
 #ifdef ENABLE_NOAA
             && !IS_NOAA_CHANNEL(gTxVfo->CHANNEL_SAVE)
@@ -815,6 +829,7 @@ static void MAIN_Key_STAR(bool bKeyPressed, bool bKeyHeld)
         }
         else
             gBeepToPlay = BEEP_500HZ_60MS_DOUBLE_BEEP_OPTIONAL;
+#endif
     }
     else
     {   // with the F-key
@@ -956,6 +971,7 @@ void MAIN_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
     }
 #endif
 
+#ifndef DISABLE_TX
     if (gDTMF_InputMode && bKeyPressed && !bKeyHeld) {
         const char Character = DTMF_GetCharacter(Key);
         if (Character != 0xFF)
@@ -968,6 +984,7 @@ void MAIN_ProcessKeys(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
             return;
         }
     }
+#endif
 
     // TODO: ???
 //  if (Key > KEY_PTT)

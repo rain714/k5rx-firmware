@@ -38,7 +38,12 @@
 #ifndef ENABLE_FEAT_F4HWN_DEBUG
 static void convertTime(uint8_t *line, uint8_t type) 
 {
+#ifdef DISABLE_TX
+    (void)type;
+    uint16_t t = 3600 - gRxTimerCountdown_500ms / 2;
+#else
     uint16_t t = (type == 0) ? (gTxTimerCountdown_500ms / 2) : (3600 - gRxTimerCountdown_500ms / 2);
+#endif
 
     uint8_t m = t / 60;
     uint8_t s = t - (m * 60); // Replace modulo with subtraction for efficiency
@@ -144,11 +149,14 @@ void UI_DisplayStatus()
 
         if(!SCANNER_IsScanning()) {
         #ifdef ENABLE_FEAT_F4HWN_RX_TX_TIMER
+            #ifndef DISABLE_TX
             if(gCurrentFunction == FUNCTION_TRANSMIT && gSetting_set_tmr == true)
             {
                 convertTime(line, 0);
             }
-            else if(FUNCTION_IsRx() && gSetting_set_tmr == true)
+            else
+            #endif
+            if(FUNCTION_IsRx() && gSetting_set_tmr == true)
             {
                 convertTime(line, 1);
             }

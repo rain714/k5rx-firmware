@@ -88,7 +88,9 @@ void GUI_SelectNextDisplay(GUI_DisplayType_t Display)
 
     if (gScreenToDisplay != Display)
     {
+#ifndef DISABLE_TX
         DTMF_clear_input_box();
+#endif
 
         gInputBoxIndex       = 0;
         gIsInSubMenu         = false;

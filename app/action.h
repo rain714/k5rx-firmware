@@ -19,7 +19,9 @@
 
 #include "driver/keyboard.h"
 
+#ifndef DISABLE_TX
 void ACTION_Power(void);
+#endif
 void ACTION_Monitor(void);
 void ACTION_Scan(bool bRestart);
 #ifdef ENABLE_VOX
@@ -38,7 +40,9 @@ void ACTION_SwitchDemodul(void);
 #ifdef ENABLE_FEAT_F4HWN
     void ACTION_RxMode(void);
     void ACTION_MainOnly(void);
+#ifndef DISABLE_TX
     void ACTION_Ptt(void);
+#endif
     void ACTION_Wn(void);
     void ACTION_BackLightOnDemand(void);
     void ACTION_BackLight(void);

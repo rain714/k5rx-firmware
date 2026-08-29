@@ -307,7 +307,10 @@ void DisplayRSSIBar(const bool now)
     if ((gEeprom.KEY_LOCK && gKeypadLocked > 0) || center_line != CENTER_LINE_RSSI)
         return;     // display is in use
 
-    if (gCurrentFunction == FUNCTION_TRANSMIT ||
+    if (
+#ifndef DISABLE_TX
+        gCurrentFunction == FUNCTION_TRANSMIT ||
+#endif
         gScreenToDisplay != DISPLAY_MAIN
 #ifdef ENABLE_DTMF_CALLING
         || gDTMF_CallState != DTMF_CALL_STATE_NONE
@@ -736,6 +739,7 @@ void UI_DisplayMain(void)
 
         uint32_t frequency = gEeprom.VfoInfo[vfo_num].pRX->Frequency;
 
+#ifndef DISABLE_TX
         if(TX_freq_check(frequency) != 0 && gEeprom.VfoInfo[vfo_num].TX_LOCK == true)
         {
             if(isMainOnly())
@@ -761,6 +765,7 @@ void UI_DisplayMain(void)
             }
         }
         else
+#endif
         {   // receiving .. show the RX symbol
             mode = VFO_MODE_RX;
             //if (FUNCTION_IsRx() && gEeprom.RX_VFO == vfo_num) {
@@ -869,11 +874,13 @@ void UI_DisplayMain(void)
         }
         else
         {
+#ifndef DISABLE_TX
             if (gCurrentFunction == FUNCTION_TRANSMIT)
             {   // transmitting
                 if (activeTxVFO == vfo_num)
                     frequency = gEeprom.VfoInfo[vfo_num].pTX->Frequency;
             }
+#endif
 
             if (IS_MR_CHANNEL(gEeprom.ScreenChannel[vfo_num]))
             {   // it's a channel
@@ -1193,6 +1200,7 @@ void UI_DisplayMain(void)
         UI_PrintStringSmallNormal(s, LCD_WIDTH + 24, 0, line + 1);
 #endif
 
+#ifndef DISABLE_TX
         if (state == VFO_STATE_NORMAL || state == VFO_STATE_ALARM)
         {   // show the TX power
             uint8_t currentPower = vfoInfo->OUTPUT_POWER % 8;
@@ -1232,7 +1240,9 @@ void UI_DisplayMain(void)
                 memcpy(p_line0 + 256 + arrowPos, BITMAP_PowerUser, sizeof(BITMAP_PowerUser));
             }
         }
+#endif
 
+#ifndef DISABLE_TX
         if (vfoInfo->freq_config_RX.Frequency != vfoInfo->freq_config_TX.Frequency)
         {   // show the TX offset symbol
             int i = vfoInfo->TX_OFFSET_FREQUENCY_DIRECTION % 3;
@@ -1288,6 +1298,7 @@ void UI_DisplayMain(void)
         }
 #else
             UI_PrintStringSmallNormal("R", LCD_WIDTH + 62, 0, line + 1);
+#endif
 #endif
 
 #if ENABLE_FEAT_F4HWN

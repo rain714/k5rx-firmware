@@ -72,7 +72,11 @@ static void ACTION_Bank(void)
 
 void (*action_opt_table[])(void) = {
     [ACTION_OPT_NONE] = &FUNCTION_NOP,
+#ifndef DISABLE_TX
     [ACTION_OPT_POWER] = &ACTION_Power,
+#else
+    [ACTION_OPT_POWER] = &FUNCTION_NOP,
+#endif
     [ACTION_OPT_MONITOR] = &ACTION_Monitor,
     [ACTION_OPT_SCAN] = &ACTION_ScanRestart,
     [ACTION_OPT_KEYLOCK] = &COMMON_KeypadLockToggle,
@@ -119,7 +123,11 @@ void (*action_opt_table[])(void) = {
 #ifdef ENABLE_FEAT_F4HWN
     [ACTION_OPT_RXMODE] = &ACTION_RxMode,
     [ACTION_OPT_MAINONLY] = &ACTION_MainOnly,
+#ifndef DISABLE_TX
     [ACTION_OPT_PTT] = &ACTION_Ptt,
+#else
+    [ACTION_OPT_PTT] = &FUNCTION_NOP,
+#endif
     [ACTION_OPT_WN] = &ACTION_Wn,
     [ACTION_OPT_BACKLIGHT] = &ACTION_BackLight,
     #if !defined(ENABLE_SPECTRUM) || !defined(ENABLE_FMRADIO)
@@ -145,6 +153,7 @@ void (*action_opt_table[])(void) = {
 
 static_assert(ARRAY_SIZE(action_opt_table) == ACTION_OPT_LEN);
 
+#ifndef DISABLE_TX
 void ACTION_Power(void)
 {
     if (++gTxVfo->OUTPUT_POWER > OUTPUT_POWER_HIGH)
@@ -159,6 +168,7 @@ void ACTION_Power(void)
 #endif
 
 }
+#endif
 
 void ACTION_Monitor(void)
 {
@@ -331,6 +341,7 @@ void ACTION_SwitchDemodul(void)
 
 void ACTION_Handle(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 {
+#ifndef DISABLE_TX
     if (gScreenToDisplay == DISPLAY_MAIN && gDTMF_InputMode){
          // entering DTMF code
 
@@ -359,6 +370,7 @@ void ACTION_Handle(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 #endif
         return;
     }
+#endif
 
     enum ACTION_OPT_t funcShort = ACTION_OPT_NONE;
     enum ACTION_OPT_t funcLong  = ACTION_OPT_NONE;
@@ -583,10 +595,12 @@ void ACTION_MainOnly(void)
     ACTION_Update();
 }
 
+#ifndef DISABLE_TX
 void ACTION_Ptt(void)
 {
     gSetting_set_ptt_session = !gSetting_set_ptt_session;
 }
+#endif
 
 void ACTION_Wn(void)
 {

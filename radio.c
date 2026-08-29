@@ -585,6 +585,7 @@ void RADIO_ConfigureSquelchAndOutputPower(VFO_Info_t *pInfo)
         pInfo->SquelchCloseNoiseThresh  = (noise_close  > 127) ? 127 : noise_close;
     }
 
+#ifndef DISABLE_TX
     // *******************************
     // output power
 
@@ -718,6 +719,7 @@ void RADIO_ConfigureSquelchAndOutputPower(VFO_Info_t *pInfo)
         pInfo->pTX->Frequency);
 
     // *******************************
+#endif
 }
 
 void RADIO_ApplyOffset(VFO_Info_t *pInfo)

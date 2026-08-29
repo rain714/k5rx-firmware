@@ -78,13 +78,16 @@ void SystickHandler(void)
         gNextTimeslice_500ms = true;
 
 #ifdef ENABLE_FEAT_F4HWN
+#ifndef DISABLE_TX
         DECREMENT_AND_TRIGGER(gTxTimerCountdownAlert_500ms - ALERT_TOT * 2, gTxTimeoutReachedAlert);
+#endif
         #ifdef ENABLE_FEAT_F4HWN_RX_TX_TIMER
             DECREMENT(gRxTimerCountdown_500ms);
         #endif
 #endif
-        
+#ifndef DISABLE_TX
         DECREMENT_AND_TRIGGER(gTxTimerCountdown_500ms, gTxTimeoutReached);
+#endif
         DECREMENT(gSerialConfigCountDown_500ms);
     }
 
@@ -106,7 +109,11 @@ void SystickHandler(void)
         DECREMENT_AND_TRIGGER(gPowerSave_10ms, gPowerSaveCountdownExpired);
 
     if (gScanStateDir == SCAN_OFF && !gCssBackgroundScan && gEeprom.DUAL_WATCH != DUAL_WATCH_OFF)
+#ifdef DISABLE_TX
+        if (gCurrentFunction != FUNCTION_MONITOR && gCurrentFunction != FUNCTION_RECEIVE)
+#else
         if (gCurrentFunction != FUNCTION_MONITOR && gCurrentFunction != FUNCTION_TRANSMIT && gCurrentFunction != FUNCTION_RECEIVE)
+#endif
             DECREMENT_AND_TRIGGER(gDualWatchCountdown_10ms, gScheduleDualWatch);
 
 #ifdef ENABLE_NOAA
@@ -117,7 +124,11 @@ void SystickHandler(void)
 #endif
 
     if (gScanStateDir != SCAN_OFF)
+#ifdef DISABLE_TX
+        if (gCurrentFunction != FUNCTION_MONITOR)
+#else
         if (gCurrentFunction != FUNCTION_MONITOR && gCurrentFunction != FUNCTION_TRANSMIT)
+#endif
             DECREMENT_AND_TRIGGER(gScanPauseDelayIn_10ms, gScheduleScanListen);
 
     DECREMENT_AND_TRIGGER(gTailNoteEliminationCountdown_10ms, gFlagTailNoteEliminationComplete);
