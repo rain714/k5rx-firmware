@@ -20,6 +20,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "eeprom-layout.h"
+
 #ifndef ARRAY_SIZE
     #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
@@ -43,13 +45,29 @@
 
 enum {
     MR_CHANNEL_FIRST   = 0,
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+    MR_CHANNEL_LAST    = EEPROM_K5RX_CHANNEL_COUNT - 1u,
+    FREQ_CHANNEL_FIRST = EEPROM_K5RX_CHANNEL_COUNT,
+    FREQ_CHANNEL_LAST  = EEPROM_K5RX_CHANNEL_COUNT + 6u,
+    NOAA_CHANNEL_FIRST = EEPROM_K5RX_CHANNEL_COUNT + 7u,
+    NOAA_CHANNEL_LAST  = EEPROM_K5RX_CHANNEL_COUNT + 16u,
+#else
     MR_CHANNEL_LAST    = 199u,
     FREQ_CHANNEL_FIRST = 200u,
     FREQ_CHANNEL_LAST  = 206u,
     NOAA_CHANNEL_FIRST = 207u,
     NOAA_CHANNEL_LAST  = 216u,
+#endif
     LAST_CHANNEL
 };
+
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+typedef uint16_t channel_t;
+#define CHANNEL_NONE ((channel_t)0xFFFFu)
+#else
+typedef uint8_t channel_t;
+#define CHANNEL_NONE ((channel_t)0xFFu)
+#endif
 
 enum {
     VFO_CONFIGURE_NONE = 0,
@@ -229,8 +247,13 @@ typedef union {
     uint8_t __val;
 } ChannelAttributes_t;
 
-extern ChannelAttributes_t   gMR_ChannelAttributes[207];
-extern bool                  gMR_ChannelExclude[207];
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+extern ChannelAttributes_t   gMR_ChannelAttributes[MR_CHANNEL_LAST + 1u];
+extern bool                  gMR_ChannelExclude[MR_CHANNEL_LAST + 1u];
+#else
+extern ChannelAttributes_t   gMR_ChannelAttributes[FREQ_CHANNEL_LAST + 1u];
+extern bool                  gMR_ChannelExclude[FREQ_CHANNEL_LAST + 1u];
+#endif
 
 extern volatile uint16_t     gBatterySaveCountdown_10ms;
 
@@ -336,7 +359,7 @@ extern bool                  g_SquelchLost;
 extern volatile uint16_t     gFlashLightBlinkCounter;
 
 extern bool                  gFlagEndTransmission;
-extern uint8_t               gNextMrChannel;
+extern channel_t             gNextMrChannel;
 extern ReceptionMode_t       gRxReceptionMode;
 
  //TRUE when dual watch is momentarly suspended and RX_VFO is locked to either last TX or RX

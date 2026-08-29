@@ -23,7 +23,9 @@
 #endif
 
 #include "driver/backlight.h"
+#include "eeprom-layout.h"
 #include "frequencies.h"
+#include "settings.h"
 #include "ui/helper.h"
 #include "ui/main.h"
 
@@ -120,9 +122,14 @@ uint16_t statuslineUpdateTimer = 0;
 #ifdef ENABLE_FEAT_F4HWN_SPECTRUM
 static void LoadSettings()
 {
-    uint8_t Data[8] = {0};
-    // 1FF0..0x1FF7
-    EEPROM_ReadBuffer(0x1FF0, Data, 8);
+    uint8_t Data[8];
+    memset(Data, 0xFF, sizeof(Data));
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+    if (SETTINGS_IsK5RXEEPROMReady())
+        EEPROM_ReadBuffer(EEPROM_K5RX_SPECTRUM_SETTINGS_BASE, Data, sizeof(Data));
+#else
+    EEPROM_ReadBuffer(0x1FF0, Data, sizeof(Data));
+#endif
 
     settings.scanStepIndex = ((Data[3] & 0xF0) >> 4);
 
@@ -148,13 +155,22 @@ static void LoadSettings()
 
 static void SaveSettings()
 {
-    uint8_t Data[8] = {0};
-    // 1FF0..0x1FF7
-    EEPROM_ReadBuffer(0x1FF0, Data, 8);
+    uint8_t Data[8];
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+    if (!SETTINGS_IsK5RXEEPROMReady())
+        return;
+    EEPROM_ReadBuffer(EEPROM_K5RX_SPECTRUM_SETTINGS_BASE, Data, sizeof(Data));
+#else
+    EEPROM_ReadBuffer(0x1FF0, Data, sizeof(Data));
+#endif
 
     Data[3] = (settings.scanStepIndex << 4) | (settings.stepsCount << 2) | settings.listenBw;
 
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+    EEPROM_WriteBuffer(EEPROM_K5RX_SPECTRUM_SETTINGS_BASE, Data);
+#else
     EEPROM_WriteBuffer(0x1FF0, Data);
+#endif
 }
 #endif
 

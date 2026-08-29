@@ -1,0 +1,192 @@
+/* EEPROM layout constants for F4HWN compatibility and the K5RX custom schema. */
+
+#ifndef EEPROM_LAYOUT_H
+#define EEPROM_LAYOUT_H
+
+#define EEPROM_SIZE                         0x2000u
+
+/* Inherited Egzumer/F4HWN layout. */
+#define EEPROM_CHANNEL_RECORD_BASE          0x0000u
+#define EEPROM_LEGACY_MR_CHANNEL_COUNT      200u
+#define EEPROM_CHANNEL_RECORD_SIZE          16u
+
+#define EEPROM_VFO_RECORD_BASE              0x0C80u
+#define EEPROM_VFO_RECORD_SIZE              16u
+#define EEPROM_VFO_RECORD_STRIDE            32u
+
+#define EEPROM_CHANNEL_ATTRIBUTE_BASE       0x0D60u
+#define EEPROM_CHANNEL_ATTRIBUTE_END        0x0E28u
+
+#define EEPROM_FM_CHANNEL_BASE              0x0E40u
+#define EEPROM_FM_CHANNEL_END               0x0E70u
+#define EEPROM_FM_SETTINGS_BASE             0x0E88u
+#define EEPROM_FM_SETTINGS_END              0x0E90u
+
+#define EEPROM_VOICE_PROMPT_BASE            0x0EA0u
+#define EEPROM_VOICE_PROMPT_END             0x0EA8u
+#define EEPROM_WELCOME_BASE                 0x0EB0u
+#define EEPROM_WELCOME_END                  0x0ED0u
+#define EEPROM_DTMF_ID_CODE_BASE            0x0EE0u
+#define EEPROM_SCAN_LIST_BASE               0x0F18u
+#define EEPROM_AES_AND_LOCK_BASE            0x0F30u
+#define EEPROM_CHANNEL_NAME_BASE            0x0F50u
+#define EEPROM_CHANNEL_NAME_STRIDE          16u
+#define EEPROM_CHANNEL_NAME_DISPLAY_LENGTH  10u
+#define EEPROM_DTMF_CONTACTS_BASE           0x1C00u
+
+#define EEPROM_CALIBRATION_BASE             0x1EC0u
+#define EEPROM_RESET_RANGE_END              0x1E00u
+
+#define EEPROM_FACTORY_AREA_BASE            0x1E00u
+#define EEPROM_FACTORY_AREA_END             EEPROM_SIZE
+#define EEPROM_CAL_SQL_UHF_BASE             0x1E00u
+#define EEPROM_CAL_SQL_VHF_BASE             0x1E60u
+#define EEPROM_CAL_RSSI_BASE                EEPROM_CALIBRATION_BASE
+#define EEPROM_CAL_BATTERY_BASE             0x1F40u
+#define EEPROM_CAL_XTAL_BASE                0x1F88u
+
+/* K5RX custom EEPROM layout.
+ *
+ * 0000..000F  Header
+ * 0010..0C8F  400 x 8-byte channel records
+ * 0C90..1C2F  400 x 10-byte channel names
+ * 1C30..1CAF  VFO state (16-byte indices + 14 x 8-byte band/VFO records)
+ * 1CB0..1CEF  K5RX settings
+ * 1CF0..1D2F  FM radio
+ * 1D30..1DAF  optional bank table
+ * 1DB0..1DCF  welcome strings
+ * 1DD0..1DD7  build options
+ * 1DD8..1DDF  optional application settings
+ * 1DE0..1DFF  reserved
+ * 1E00..1FFF  factory/calibration, never reset by K5RX mutable paths
+ *
+ * The schema version is an on-EEPROM compatibility identifier. It is not a
+ * build profile or feature version.
+ */
+#define EEPROM_K5RX_MAGIC                   0x4B355258u  /* "K5RX" */
+#define EEPROM_K5RX_SCHEMA_VERSION          2u
+#define EEPROM_K5RX_HEADER_BASE             0x0000u
+#define EEPROM_K5RX_HEADER_SIZE             16u
+#define EEPROM_K5RX_HEADER_MAGIC_OFFSET     0u
+#define EEPROM_K5RX_HEADER_VERSION_OFFSET   4u
+#define EEPROM_K5RX_HEADER_SIZE_OFFSET      5u
+#define EEPROM_K5RX_HEADER_CAPS_OFFSET      6u
+#define EEPROM_K5RX_HEADER_MUTABLE_END_OFFSET 8u
+#define EEPROM_K5RX_HEADER_CHANNEL_COUNT_OFFSET 10u
+#define EEPROM_K5RX_HEADER_RECORD_SIZE_OFFSET 12u
+#define EEPROM_K5RX_HEADER_NAME_LENGTH_OFFSET 13u
+#define EEPROM_K5RX_HEADER_BANK_COUNT_OFFSET 14u
+
+#define EEPROM_K5RX_CAP_400_CHANNELS        (1u << 0)
+#define EEPROM_K5RX_CAP_CHANNEL_BANK_CODE   (1u << 1)
+
+#define EEPROM_K5RX_CHANNEL_COUNT           400u
+#define EEPROM_K5RX_CHANNEL_RECORD_BASE     0x0010u
+#define EEPROM_K5RX_CHANNEL_RECORD_SIZE     8u
+#define EEPROM_K5RX_CHANNEL_RECORD_END      (EEPROM_K5RX_CHANNEL_RECORD_BASE + \
+                                             (EEPROM_K5RX_CHANNEL_COUNT * EEPROM_K5RX_CHANNEL_RECORD_SIZE))
+
+#define EEPROM_K5RX_CHANNEL_FREQ_MASK       0x07FFFFFFu
+#define EEPROM_K5RX_CHANNEL_SCAN_MASK       0x07u
+#define EEPROM_K5RX_CHANNEL_BANK_SHIFT      3u
+#define EEPROM_K5RX_CHANNEL_BANK_MASK       0x78u
+#define EEPROM_K5RX_BANK_UNBANKED           0u
+#define EEPROM_K5RX_BANK_COUNT              8u
+#define EEPROM_K5RX_BANK_MIN                1u
+#define EEPROM_K5RX_BANK_MAX                EEPROM_K5RX_BANK_COUNT
+#define EEPROM_K5RX_BANK_RESERVED_MIN       9u
+
+#define EEPROM_K5RX_CHANNEL_NAME_BASE       EEPROM_K5RX_CHANNEL_RECORD_END
+#define EEPROM_K5RX_CHANNEL_NAME_LENGTH     10u
+#define EEPROM_K5RX_CHANNEL_NAME_STRIDE     10u
+#define EEPROM_K5RX_CHANNEL_NAME_END        (EEPROM_K5RX_CHANNEL_NAME_BASE + \
+                                             (EEPROM_K5RX_CHANNEL_COUNT * EEPROM_K5RX_CHANNEL_NAME_STRIDE))
+
+#define EEPROM_K5RX_CHANNEL_NONE            0xFFFFu
+#define EEPROM_K5RX_CHANNEL_REF_SIZE        2u
+
+#define EEPROM_K5RX_VFO_STATE_BASE          EEPROM_K5RX_CHANNEL_NAME_END
+#define EEPROM_K5RX_VFO_STATE_SIZE          128u
+#define EEPROM_K5RX_VFO_INDEX_BASE          EEPROM_K5RX_VFO_STATE_BASE
+#define EEPROM_K5RX_VFO_INDEX_RECORD_SIZE   8u
+#define EEPROM_K5RX_VFO_INDEX_END           (EEPROM_K5RX_VFO_INDEX_BASE + (2u * EEPROM_K5RX_VFO_INDEX_RECORD_SIZE))
+#define EEPROM_K5RX_VFO_RUNTIME_BASE        EEPROM_K5RX_VFO_INDEX_END
+#define EEPROM_K5RX_VFO_RUNTIME_SIZE        8u
+#define EEPROM_K5RX_VFO_BAND_COUNT          7u
+#define EEPROM_K5RX_VFO_RUNTIME_COUNT       (2u * EEPROM_K5RX_VFO_BAND_COUNT)
+#define EEPROM_K5RX_VFO_RUNTIME_END         (EEPROM_K5RX_VFO_RUNTIME_BASE + \
+                                             (EEPROM_K5RX_VFO_RUNTIME_COUNT * EEPROM_K5RX_VFO_RUNTIME_SIZE))
+#define EEPROM_K5RX_VFO_STATE_END           (EEPROM_K5RX_VFO_STATE_BASE + EEPROM_K5RX_VFO_STATE_SIZE)
+
+#define EEPROM_K5RX_SETTINGS_BASE           EEPROM_K5RX_VFO_STATE_END
+#define EEPROM_K5RX_SETTINGS_SIZE           64u
+#define EEPROM_K5RX_SETTINGS_END            (EEPROM_K5RX_SETTINGS_BASE + EEPROM_K5RX_SETTINGS_SIZE)
+#define EEPROM_K5RX_SETTINGS_GENERAL_BASE   (EEPROM_K5RX_SETTINGS_BASE + 0u)
+#define EEPROM_K5RX_SETTINGS_SCAN_BASE      (EEPROM_K5RX_SETTINGS_BASE + 32u)
+#define EEPROM_K5RX_SETTINGS_F4HWN_BASE     (EEPROM_K5RX_SETTINGS_BASE + 56u)
+
+#define EEPROM_K5RX_FM_BASE                 EEPROM_K5RX_SETTINGS_END
+#define EEPROM_K5RX_FM_SIZE                 64u
+#define EEPROM_K5RX_FM_END                  (EEPROM_K5RX_FM_BASE + EEPROM_K5RX_FM_SIZE)
+#define EEPROM_K5RX_FM_CHANNEL_BASE         EEPROM_K5RX_FM_BASE
+#define EEPROM_K5RX_FM_CHANNEL_SIZE         40u
+#define EEPROM_K5RX_FM_CONFIG_BASE          (EEPROM_K5RX_FM_CHANNEL_BASE + EEPROM_K5RX_FM_CHANNEL_SIZE)
+
+#define EEPROM_K5RX_BANK_RECORD_SIZE        16u
+#define EEPROM_K5RX_BANK_TABLE_BASE         EEPROM_K5RX_FM_END
+#define EEPROM_K5RX_BANK_TABLE_SIZE         (EEPROM_K5RX_BANK_COUNT * EEPROM_K5RX_BANK_RECORD_SIZE)
+#define EEPROM_K5RX_BANK_TABLE_END          (EEPROM_K5RX_BANK_TABLE_BASE + EEPROM_K5RX_BANK_TABLE_SIZE)
+
+#define EEPROM_K5RX_WELCOME_BASE            EEPROM_K5RX_BANK_TABLE_END
+#define EEPROM_K5RX_WELCOME_LINE_SIZE       16u
+#define EEPROM_K5RX_WELCOME_SIZE            (2u * EEPROM_K5RX_WELCOME_LINE_SIZE)
+#define EEPROM_K5RX_WELCOME_LINE0_BASE      EEPROM_K5RX_WELCOME_BASE
+#define EEPROM_K5RX_WELCOME_LINE1_BASE      (EEPROM_K5RX_WELCOME_BASE + EEPROM_K5RX_WELCOME_LINE_SIZE)
+#define EEPROM_K5RX_WELCOME_END             (EEPROM_K5RX_WELCOME_BASE + EEPROM_K5RX_WELCOME_SIZE)
+
+#define EEPROM_K5RX_BUILD_OPTIONS_BASE      EEPROM_K5RX_WELCOME_END
+#define EEPROM_K5RX_BUILD_OPTIONS_SIZE      8u
+#define EEPROM_K5RX_BUILD_OPTIONS_END       (EEPROM_K5RX_BUILD_OPTIONS_BASE + EEPROM_K5RX_BUILD_OPTIONS_SIZE)
+
+#define EEPROM_K5RX_APP_SETTINGS_BASE       EEPROM_K5RX_BUILD_OPTIONS_END
+#define EEPROM_K5RX_APP_SETTINGS_SIZE       8u
+#define EEPROM_K5RX_APP_SETTINGS_END        (EEPROM_K5RX_APP_SETTINGS_BASE + EEPROM_K5RX_APP_SETTINGS_SIZE)
+#define EEPROM_K5RX_SPECTRUM_SETTINGS_BASE  EEPROM_K5RX_APP_SETTINGS_BASE
+
+#define EEPROM_K5RX_RESERVED_BASE           EEPROM_K5RX_APP_SETTINGS_END
+#define EEPROM_K5RX_RESERVED_END            EEPROM_FACTORY_AREA_BASE
+#define EEPROM_K5RX_MUTABLE_END             EEPROM_FACTORY_AREA_BASE
+#define EEPROM_K5RX_RESET_RANGE_END         EEPROM_K5RX_MUTABLE_END
+#define EEPROM_K5RX_SETTINGS_FLAG_LIVE_DTMF (1u << 0)
+
+_Static_assert(EEPROM_K5RX_HEADER_BASE == 0x0000u, "K5RX header must start at EEPROM base");
+_Static_assert(EEPROM_K5RX_HEADER_SIZE == EEPROM_K5RX_CHANNEL_RECORD_BASE, "K5RX header overlaps channels");
+_Static_assert(EEPROM_K5RX_HEADER_CAPS_OFFSET + 2u <= EEPROM_K5RX_HEADER_SIZE, "K5RX header caps overflow header");
+_Static_assert(EEPROM_K5RX_HEADER_BANK_COUNT_OFFSET + 1u <= EEPROM_K5RX_HEADER_SIZE, "K5RX header layout overflows header");
+_Static_assert(EEPROM_K5RX_CHANNEL_RECORD_SIZE == 8u, "K5RX channel record must be 8 bytes");
+_Static_assert(EEPROM_K5RX_CHANNEL_RECORD_END <= EEPROM_K5RX_CHANNEL_NAME_BASE, "K5RX channel names overlap records");
+_Static_assert(EEPROM_K5RX_CHANNEL_NAME_STRIDE == EEPROM_K5RX_CHANNEL_NAME_LENGTH, "K5RX channel name stride changed");
+_Static_assert(EEPROM_K5RX_CHANNEL_NAME_END <= EEPROM_K5RX_VFO_STATE_BASE, "K5RX VFO state overlaps names");
+_Static_assert(EEPROM_K5RX_VFO_INDEX_END <= EEPROM_K5RX_VFO_RUNTIME_BASE, "K5RX VFO index overlaps runtime");
+_Static_assert(EEPROM_K5RX_VFO_RUNTIME_COUNT == 14u, "K5RX VFO runtime count changed");
+_Static_assert(EEPROM_K5RX_VFO_RUNTIME_END <= EEPROM_K5RX_VFO_STATE_END, "K5RX VFO runtime overflows VFO state");
+_Static_assert(EEPROM_K5RX_VFO_STATE_END <= EEPROM_K5RX_SETTINGS_BASE, "K5RX settings overlap VFO state");
+_Static_assert(EEPROM_K5RX_SETTINGS_END <= EEPROM_K5RX_FM_BASE, "K5RX FM area overlaps settings");
+_Static_assert(EEPROM_K5RX_SETTINGS_SCAN_BASE + 24u <= EEPROM_K5RX_SETTINGS_END, "K5RX scan settings overflow settings");
+_Static_assert(EEPROM_K5RX_SETTINGS_F4HWN_BASE + 8u <= EEPROM_K5RX_SETTINGS_END, "K5RX F4HWN settings overflow settings");
+_Static_assert(EEPROM_K5RX_FM_CHANNEL_BASE + EEPROM_K5RX_FM_CHANNEL_SIZE <= EEPROM_K5RX_FM_CONFIG_BASE, "K5RX FM config overlaps FM channels");
+_Static_assert(EEPROM_K5RX_FM_CONFIG_BASE + 8u <= EEPROM_K5RX_FM_END, "K5RX FM config overflows FM area");
+_Static_assert(EEPROM_K5RX_FM_END <= EEPROM_K5RX_BANK_TABLE_BASE, "K5RX bank table overlaps FM");
+_Static_assert(EEPROM_K5RX_BANK_TABLE_END <= EEPROM_K5RX_WELCOME_BASE, "K5RX welcome area overlaps banks");
+_Static_assert(EEPROM_K5RX_WELCOME_END <= EEPROM_K5RX_BUILD_OPTIONS_BASE, "K5RX build options overlap welcome strings");
+_Static_assert(EEPROM_K5RX_BUILD_OPTIONS_END <= EEPROM_K5RX_APP_SETTINGS_BASE, "K5RX app settings overlap build options");
+_Static_assert(EEPROM_K5RX_APP_SETTINGS_END <= EEPROM_K5RX_RESERVED_BASE, "K5RX reserved area overlaps app settings");
+_Static_assert(EEPROM_K5RX_SPECTRUM_SETTINGS_BASE + 8u <= EEPROM_K5RX_APP_SETTINGS_END, "K5RX spectrum settings overflow app settings");
+_Static_assert(EEPROM_K5RX_RESERVED_END == EEPROM_FACTORY_AREA_BASE, "K5RX reserved area must end at factory boundary");
+_Static_assert(EEPROM_K5RX_MUTABLE_END == EEPROM_FACTORY_AREA_BASE, "K5RX mutable end must be factory boundary");
+_Static_assert(EEPROM_K5RX_MUTABLE_END <= EEPROM_FACTORY_AREA_BASE, "K5RX mutable EEPROM overlaps factory/calibration area");
+_Static_assert(EEPROM_FACTORY_AREA_BASE == EEPROM_CAL_SQL_UHF_BASE, "Factory boundary must include squelch calibration");
+_Static_assert(EEPROM_FACTORY_AREA_END == EEPROM_SIZE, "Factory area must end at EEPROM end");
+_Static_assert(EEPROM_CALIBRATION_BASE < EEPROM_SIZE, "Calibration must stay inside EEPROM");
+
+#endif

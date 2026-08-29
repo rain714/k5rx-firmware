@@ -323,6 +323,14 @@ static void CMD_051D(const uint8_t *pBuffer)
                 if (!gIsLocked)
                     bReloadEeprom = true;
 
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+            // K5RX UART configuration writes are confined to the mutable area.
+            // Reject blocks that start in or cross into factory/calibration space.
+            if (Offset >= EEPROM_K5RX_MUTABLE_END ||
+                (uint32_t)Offset + 8u > EEPROM_K5RX_MUTABLE_END)
+                continue;
+            bReloadEeprom = true;
+#endif
             if ((Offset < 0x0E98 || Offset >= 0x0EA0) || !bIsInLockScreen || pCmd->bAllowPassword)
                 EEPROM_WriteBuffer(Offset, &pCmd->Data[i * 8U]);
         }

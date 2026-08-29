@@ -272,7 +272,7 @@ void Main(void)
 
 #ifdef ENABLE_VOICE
         {
-            uint8_t Channel;
+            channel_t Channel;
 
             AUDIO_SetVoiceID(0, VOICE_ID_WELCOME);
 

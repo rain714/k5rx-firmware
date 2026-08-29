@@ -14,6 +14,7 @@ endif
 
 # Safety/capability flags are independent from profiles. Profiles only select defaults.
 DISABLE_TX ?= 0
+ENABLE_K5RX_CUSTOM_EEPROM ?= 0
 
 # ---- STOCK QUANSHENG FEATURES ----
 ENABLE_FMRADIO                  ?= 0
@@ -97,12 +98,28 @@ ENABLE_EXPERIMENTAL_CLFAGS      ?= 1
 
 ifeq ($(BUILD_PROFILE),K5RX)
 	override DISABLE_TX := 1
+	override ENABLE_K5RX_CUSTOM_EEPROM := 1
 
 	# Transmit-only features are intentionally absent from the K5RX profile.
+	override ENABLE_AIRCOPY := 0
 	override ENABLE_VOX := 0
 	override ENABLE_TX1750 := 0
 	override ENABLE_TX_WHEN_AM := 0
 	override ENABLE_REDUCE_LOW_MID_TX_POWER := 0
+endif
+
+# The compact K5RX schema intentionally contains no transmit configuration.
+ifeq ($(ENABLE_K5RX_CUSTOM_EEPROM),1)
+ifneq ($(DISABLE_TX),1)
+$(error ENABLE_K5RX_CUSTOM_EEPROM requires DISABLE_TX=1)
+endif
+endif
+
+# AirCopy transmits FSK data and is incompatible with a TX-disabled build.
+ifeq ($(DISABLE_TX),1)
+ifneq ($(ENABLE_AIRCOPY),0)
+$(error ENABLE_AIRCOPY requires transmit capability)
+endif
 endif
 
 ifeq ($(ENABLE_FEAT_F4HWN),1)
@@ -336,6 +353,9 @@ CFLAGS += -DAUTHOR_STRING=\"$(AUTHOR_STRING)\" -DVERSION_STRING=\"$(VERSION_STRI
 
 ifeq ($(DISABLE_TX),1)
 	CFLAGS += -DDISABLE_TX
+endif
+ifeq ($(ENABLE_K5RX_CUSTOM_EEPROM),1)
+	CFLAGS += -DENABLE_K5RX_CUSTOM_EEPROM
 endif
 ifeq ($(ENABLE_SPECTRUM),1)
 CFLAGS += -DENABLE_SPECTRUM

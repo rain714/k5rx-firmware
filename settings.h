@@ -162,9 +162,9 @@ enum CHANNEL_DisplayMode_t {
 typedef enum CHANNEL_DisplayMode_t CHANNEL_DisplayMode_t;
 
 typedef struct {
-    uint8_t               ScreenChannel[2]; // current channels set in the radio (memory or frequency channels)
-    uint8_t               FreqChannel[2]; // last frequency channels used
-    uint8_t               MrChannel[2]; // last memory channels used
+    channel_t             ScreenChannel[2]; // current channels set in the radio (memory or frequency channels)
+    channel_t             FreqChannel[2]; // last frequency channels used
+    channel_t             MrChannel[2]; // last memory channels used
 #ifdef ENABLE_NOAA
     uint8_t           NoaaChannel[2];
 #endif
@@ -215,8 +215,8 @@ typedef struct {
     uint8_t               SCAN_RESUME_MODE;
     uint8_t               SCAN_LIST_DEFAULT;
     bool                  SCAN_LIST_ENABLED[3];
-    uint8_t               SCANLIST_PRIORITY_CH1[3];
-    uint8_t               SCANLIST_PRIORITY_CH2[3];
+    channel_t             SCANLIST_PRIORITY_CH1[3];
+    channel_t             SCANLIST_PRIORITY_CH2[3];
 //#ifdef ENABLE_FEAT_F4HWN_RESUME_STATE // Fix me !!! What the hell is this?
     uint8_t               CURRENT_STATE;
     uint8_t               CURRENT_LIST;
@@ -241,7 +241,7 @@ typedef struct {
     uint8_t               KEY_2_LONG_PRESS_ACTION;
     uint8_t               MIC_SENSITIVITY;
     uint8_t               MIC_SENSITIVITY_TUNING;
-    uint8_t               CHAN_1_CALL;
+    channel_t             CHAN_1_CALL;
 #ifdef ENABLE_DTMF_CALLING
     char                  ANI_DTMF_ID[8];
     char                  KILL_CODE[8];
@@ -306,6 +306,25 @@ typedef struct {
 
 extern EEPROM_Config_t gEeprom;
 
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+typedef struct {
+    uint32_t frequency;
+    uint8_t code;
+    DCS_CodeType_t codeType;
+    ModulationMode_t modulation;
+    uint8_t scanListMask;
+    uint8_t bankCode;
+    uint8_t bandwidth;
+    uint8_t compander;
+    STEP_Setting_t step;
+} SETTINGS_K5RX_ChannelRecord_t;
+
+const SETTINGS_K5RX_ChannelRecord_t *SETTINGS_GetK5RXChannelRecord(channel_t channel);
+bool SETTINGS_LoadK5RXChannel(channel_t channel, VFO_Info_t *pVFO);
+bool SETTINGS_LoadK5RXVfoRuntime(uint8_t vfo, uint8_t band, VFO_Info_t *pVFO);
+bool SETTINGS_IsK5RXEEPROMReady(void);
+#endif
+
 void     SETTINGS_InitEEPROM(void);
 void     SETTINGS_LoadCalibration(void);
 uint32_t SETTINGS_FetchChannelFrequency(const int channel);
@@ -316,10 +335,10 @@ void     SETTINGS_FactoryReset(bool bIsAll);
 #endif
 void SETTINGS_SaveVfoIndices(void);
 void SETTINGS_SaveSettings(void);
-void SETTINGS_SaveChannelName(uint8_t channel, const char * name);
-void SETTINGS_SaveChannel(uint8_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, uint8_t Mode);
+void SETTINGS_SaveChannelName(channel_t channel, const char * name);
+void SETTINGS_SaveChannel(channel_t Channel, uint8_t VFO, const VFO_Info_t *pVFO, uint8_t Mode);
 void SETTINGS_SaveBatteryCalibration(const uint16_t * batteryCalibration);
-void SETTINGS_UpdateChannel(uint8_t channel, const VFO_Info_t *pVFO, bool keep, bool check, bool save);
+void SETTINGS_UpdateChannel(channel_t channel, const VFO_Info_t *pVFO, bool keep, bool check, bool save);
 void SETTINGS_WriteBuildOptions(void);
 #ifdef ENABLE_FEAT_F4HWN_RESUME_STATE
     void SETTINGS_WriteCurrentState(void);

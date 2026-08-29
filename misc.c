@@ -163,8 +163,13 @@ uint16_t          gEEPROM_RSSI_CALIB[7][4];
 uint16_t          gEEPROM_1F8A;
 uint16_t          gEEPROM_1F8C;
 
-ChannelAttributes_t gMR_ChannelAttributes[FREQ_CHANNEL_LAST + 1];
-bool                gMR_ChannelExclude[FREQ_CHANNEL_LAST + 1];
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+ChannelAttributes_t gMR_ChannelAttributes[MR_CHANNEL_LAST + 1u];
+bool                gMR_ChannelExclude[MR_CHANNEL_LAST + 1u];
+#else
+ChannelAttributes_t gMR_ChannelAttributes[FREQ_CHANNEL_LAST + 1u];
+bool                gMR_ChannelExclude[FREQ_CHANNEL_LAST + 1u];
+#endif
 
 volatile uint16_t gBatterySaveCountdown_10ms = battery_save_count_10ms;
 
@@ -262,7 +267,7 @@ bool              g_SquelchLost;
 volatile uint16_t gFlashLightBlinkCounter;
 
 bool              gFlagEndTransmission;
-uint8_t           gNextMrChannel;
+channel_t         gNextMrChannel;
 ReceptionMode_t   gRxReceptionMode;
 
 bool              gRxVfoIsActive;

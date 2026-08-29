@@ -1842,9 +1842,9 @@ static void MENU_Key_STAR(const bool bKeyPressed, const bool bKeyHeld)
 
 static void MENU_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
 {
-    uint8_t VFO;
-    uint8_t Channel;
-    bool    bCheckScanList;
+    uint8_t   VFO;
+    channel_t Channel;
+    bool      bCheckScanList;
 
     if (UI_MENU_GetCurrentMenuId() == MENU_MEM_NAME && gIsInSubMenu && edit_index >= 0)
     {   // change the character

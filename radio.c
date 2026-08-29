@@ -106,14 +106,29 @@ bool RADIO_CheckValidChannel(uint16_t channel, bool checkScanList, uint8_t scanL
 
     // I don't understand what this code is for...
     
-    const uint8_t PriorityCh1 = gEeprom.SCANLIST_PRIORITY_CH1[scanList - 1];
-    const uint8_t PriorityCh2 = gEeprom.SCANLIST_PRIORITY_CH2[scanList - 1];
+    const channel_t PriorityCh1 = gEeprom.SCANLIST_PRIORITY_CH1[scanList - 1];
+    const channel_t PriorityCh2 = gEeprom.SCANLIST_PRIORITY_CH2[scanList - 1];
 
     return PriorityCh1 != channel && PriorityCh2 != channel;
 }
 
-uint8_t RADIO_FindNextChannel(uint8_t Channel, int8_t Direction, bool bCheckScanList, uint8_t VFO)
+channel_t RADIO_FindNextChannel(channel_t Channel, int8_t Direction, bool bCheckScanList, uint8_t VFO)
 {
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+    int32_t channel = Channel;
+
+    for (unsigned int i = 0; i <= MR_CHANNEL_LAST; i++, channel += Direction) {
+        if (channel < MR_CHANNEL_FIRST)
+            channel = MR_CHANNEL_LAST;
+        else if (channel > MR_CHANNEL_LAST)
+            channel = MR_CHANNEL_FIRST;
+
+        if (RADIO_CheckValidChannel((channel_t)channel, bCheckScanList, VFO))
+            return (channel_t)channel;
+    }
+
+    return CHANNEL_NONE;
+#else
     for (unsigned int i = 0; IS_MR_CHANNEL(i); i++, Channel += Direction) {
         if (Channel == 0xFF) {
             Channel = MR_CHANNEL_LAST;
@@ -126,10 +141,11 @@ uint8_t RADIO_FindNextChannel(uint8_t Channel, int8_t Direction, bool bCheckScan
         }
     }
 
-    return 0xFF;
+    return CHANNEL_NONE;
+#endif
 }
 
-void RADIO_InitInfo(VFO_Info_t *pInfo, const uint8_t ChannelSave, const uint32_t Frequency)
+void RADIO_InitInfo(VFO_Info_t *pInfo, const channel_t ChannelSave, const uint32_t Frequency)
 {
     memset(pInfo, 0, sizeof(*pInfo));
 
@@ -159,6 +175,9 @@ void RADIO_InitInfo(VFO_Info_t *pInfo, const uint8_t ChannelSave, const uint32_t
 
 void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure)
 {
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+    (void)configure;
+#endif
     VFO_Info_t *pVfo = &gEeprom.VfoInfo[VFO];
 
     if (!gSetting_350EN) {
@@ -169,7 +188,7 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
             gEeprom.ScreenChannel[VFO] = FREQ_CHANNEL_FIRST + BAND6_400MHz;
     }
 
-    uint8_t channel = gEeprom.ScreenChannel[VFO];
+    channel_t channel = gEeprom.ScreenChannel[VFO];
 
     if (IS_VALID_CHANNEL(channel)) {
 #ifdef ENABLE_NOAA
@@ -189,7 +208,7 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 
         if (IS_MR_CHANNEL(channel)) {
             channel = RADIO_FindNextChannel(channel, RADIO_CHANNEL_UP, false, VFO);
-            if (channel == 0xFF) {
+            if (channel == CHANNEL_NONE) {
                 channel                    = gEeprom.FreqChannel[VFO];
                 gEeprom.ScreenChannel[VFO] = gEeprom.FreqChannel[VFO];
             }
@@ -202,6 +221,20 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
     else
         channel = FREQ_CHANNEL_LAST - 1;
 
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+    ChannelAttributes_t att = {0};
+    if (IS_MR_CHANNEL(channel)) {
+        att = gMR_ChannelAttributes[channel];
+        if (att.__val == 0xFF) { // invalid/unused channel
+            channel                    = gEeprom.FreqChannel[VFO];
+            gEeprom.ScreenChannel[VFO] = channel;
+
+            const uint8_t bandIdx = channel - FREQ_CHANNEL_FIRST;
+            RADIO_InitInfo(pVfo, channel, frequencyBandTable[bandIdx].lower);
+            return;
+        }
+    }
+#else
     ChannelAttributes_t att = gMR_ChannelAttributes[channel];
     if (att.__val == 0xFF) { // invalid/unused channel
         if (IS_MR_CHANNEL(channel)) {
@@ -213,6 +246,7 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
         RADIO_InitInfo(pVfo, channel, frequencyBandTable[bandIdx].lower);
         return;
     }
+#endif
 
     uint8_t band = att.band;
     if (band > BAND7_470MHz) {
@@ -241,6 +275,24 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
     pVfo->SCANLIST3_PARTICIPATION = bParticipation3;
     pVfo->CHANNEL_SAVE            = channel;
 
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+    if (IS_MR_CHANNEL(channel)) {
+        if (!SETTINGS_LoadK5RXChannel(channel, pVfo)) {
+            channel                    = gEeprom.FreqChannel[VFO];
+            gEeprom.ScreenChannel[VFO] = channel;
+            const uint8_t bandIdx = channel - FREQ_CHANNEL_FIRST;
+            RADIO_InitInfo(pVfo, channel, frequencyBandTable[bandIdx].lower);
+            return;
+        }
+        att = gMR_ChannelAttributes[channel];
+        band = pVfo->Band;
+    } else {
+        const uint8_t bandIdx = channel - FREQ_CHANNEL_FIRST;
+        if (!SETTINGS_LoadK5RXVfoRuntime(VFO, bandIdx, pVfo))
+            RADIO_InitInfo(pVfo, channel, frequencyBandTable[bandIdx].lower);
+        band = pVfo->Band;
+    }
+#else
     uint16_t base;
     if (IS_MR_CHANNEL(channel))
         base = channel * 16;
@@ -380,6 +432,7 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 
         // ***************
     }
+#endif
 
     uint32_t frequency = pVfo->freq_config_RX.Frequency;
 

@@ -60,8 +60,8 @@ void COMMON_SwitchVFOMode()
             return;
         }
 
-        uint8_t Channel = RADIO_FindNextChannel(gEeprom.MrChannel[gEeprom.TX_VFO], 1, false, 0);
-        if (Channel != 0xFF)
+        channel_t Channel = RADIO_FindNextChannel(gEeprom.MrChannel[gEeprom.TX_VFO], 1, false, 0);
+        if (Channel != CHANNEL_NONE)
         {   // swap to channel mode
             gEeprom.ScreenChannel[gEeprom.TX_VFO] = Channel;
             #ifdef ENABLE_VOICE

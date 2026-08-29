@@ -850,7 +850,7 @@ static void MAIN_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
     gPowerHigh = false;
 #endif
 
-    uint8_t Channel = gEeprom.ScreenChannel[gEeprom.TX_VFO];
+    channel_t Channel = gEeprom.ScreenChannel[gEeprom.TX_VFO];
 
     if (bKeyHeld || !bKeyPressed) { // key held or released
         if (gInputBoxIndex > 0)
@@ -880,7 +880,7 @@ static void MAIN_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
         if (!IS_NOAA_CHANNEL(Channel))
 #endif
         {
-            uint8_t Next;
+            channel_t Next;
             if (IS_FREQ_CHANNEL(Channel)) { // step/down in frequency
                 const uint32_t frequency = APP_SetFrequencyByStep(gTxVfo, Direction);
 
@@ -896,7 +896,7 @@ static void MAIN_Key_UP_DOWN(bool bKeyPressed, bool bKeyHeld, int8_t Direction)
             }
 
             Next = RADIO_FindNextChannel(Channel + Direction, Direction, false, 0);
-            if (Next == 0xFF)
+            if (Next == CHANNEL_NONE)
                 return;
             if (Channel == Next)
                 return;

@@ -1296,7 +1296,7 @@ void UI_DisplayMenu(void)
             UI_PrintStringSmallNormal(pPrintStr, menu_item_x1, menu_item_x2, 2);
 
             for (uint8_t pri = 1; pri <= 2; pri++) {
-                uint8_t channel = (pri == 1) ? gEeprom.SCANLIST_PRIORITY_CH1[i] : gEeprom.SCANLIST_PRIORITY_CH2[i];
+                channel_t channel = (pri == 1) ? gEeprom.SCANLIST_PRIORITY_CH1[i] : gEeprom.SCANLIST_PRIORITY_CH2[i];
 
                 if (IS_MR_CHANNEL(channel)) {
                     sprintf(String, "PRI%d:%u", pri, channel + 1);

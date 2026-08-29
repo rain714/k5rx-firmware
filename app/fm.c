@@ -120,13 +120,16 @@ void FM_TurnOff(void)
 
 void FM_EraseChannels(void)
 {
-    uint8_t      Template[8];
-    memset(Template, 0xFF, sizeof(Template));
+    memset(gFM_Channels, 0xFF, sizeof(gFM_Channels));
 
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+    SETTINGS_SaveFM();
+#else
+    uint8_t Template[8];
+    memset(Template, 0xFF, sizeof(Template));
     for (unsigned i = 0; i < 5; i++)
         EEPROM_WriteBuffer(0x0E40 + (i * 8), Template);
-
-    memset(gFM_Channels, 0xFF, sizeof(gFM_Channels));
+#endif
 }
 
 void FM_Tune(uint16_t Frequency, int8_t Step, bool bFlag)
