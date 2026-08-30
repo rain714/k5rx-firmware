@@ -90,6 +90,9 @@ static bool scanFastLastFullTuneCandidate;
 static channel_t scanFastPendingBaselineChannel = CHANNEL_NONE;
 static uint16_t scanFastPendingBaselineRssi;
 static uint8_t scanFastPendingNoise;
+static uint16_t scanFastRateCurrent500ms;
+static uint16_t scanFastRateEmaQ2;
+static bool scanFastRateEmaInitialized;
 static scan_fast_state_t scanFastState;
 static channel_t scanFastProbeChannel = CHANNEL_NONE;
 static uint32_t scanFastProbeSettleStartUs;
@@ -224,6 +227,38 @@ static void ScanFastResetState(void)
     threshold /= 2u;
 #endif
     scanFastSquelchOpenRssiUhf = threshold;
+}
+
+static void ScanFastResetRateWindow(void)
+{
+    scanFastRateCurrent500ms = 0;
+    scanFastRateEmaQ2 = 0;
+    scanFastRateEmaInitialized = false;
+}
+
+void CHFRSCANNER_FastRateTimeSlice500ms(void)
+{
+    if (gScanStateDir == SCAN_OFF || gSetting_fast_scan_mode == FAST_SCAN_MODE_NORMAL) {
+        ScanFastResetRateWindow();
+        return;
+    }
+
+    const uint16_t currentQ2 = (uint16_t)(scanFastRateCurrent500ms << 3);
+    scanFastRateCurrent500ms = 0;
+
+    if (!scanFastRateEmaInitialized) {
+        scanFastRateEmaQ2 = currentQ2;
+        scanFastRateEmaInitialized = true;
+    } else if (currentQ2 >= scanFastRateEmaQ2) {
+        scanFastRateEmaQ2 += (uint16_t)((currentQ2 - scanFastRateEmaQ2) >> 2);
+    } else {
+        scanFastRateEmaQ2 -= (uint16_t)((scanFastRateEmaQ2 - currentQ2) >> 2);
+    }
+}
+
+uint16_t CHFRSCANNER_FastChannelsPerSec(void)
+{
+    return (uint16_t)((scanFastRateEmaQ2 + 2u) >> 2);
 }
 
 static void ScanFastApplyChannelShape(ModulationMode_t modulation)
@@ -399,6 +434,7 @@ void CHFRSCANNER_Start(const bool storeBackupSettings, const int8_t scan_directi
     memset(scanFastChannelBaseline, 0xFF, sizeof(scanFastChannelBaseline));
     ScanFastResetState();
     ScanFastResetNoiseState();
+    ScanFastResetRateWindow();
 #endif
 #ifdef ENABLE_K5RX_CUSTOM_EEPROM
     if (IS_MR_CHANNEL(gNextMrChannel) && !RADIO_ScanScopeHasChannel(gEeprom.SCAN_LIST_DEFAULT)) {
@@ -594,6 +630,7 @@ void CHFRSCANNER_Stop(void)
     gScanStateDir = SCAN_OFF;
 #ifdef ENABLE_K5RX_FAST_SCAN
     ScanFastResetState();
+    ScanFastResetRateWindow();
 #endif
 
     const uint32_t chFr = gScanKeepResult ? lastFoundFrqOrChan : initialFrqOrChan;
@@ -793,6 +830,8 @@ static bool NextMemChannel(void)
     )
     {
 #ifdef ENABLE_K5RX_FAST_SCAN
+        if (!resumedFastProbe && scanFastRateCurrent500ms != UINT16_MAX)
+            scanFastRateCurrent500ms++;
         const scan_fast_step_result_t result = ScanFastStepChannel(gNextMrChannel);
         if (result == SCAN_FAST_STEP_PENDING)
             return false;

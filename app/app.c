@@ -1817,6 +1817,9 @@ void APP_TimeSlice500ms(void)
     }
 
     BATTERY_TimeSlice500ms();
+#ifdef ENABLE_K5RX_FAST_SCAN
+    CHFRSCANNER_FastRateTimeSlice500ms();
+#endif
     SCANNER_TimeSlice500ms();
     UI_MAIN_TimeSlice500ms();
 

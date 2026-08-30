@@ -465,6 +465,14 @@ void UI_MAIN_PrintAGC(bool now)
 
 void UI_MAIN_TimeSlice500ms(void)
 {
+#ifdef ENABLE_K5RX_FAST_SCAN
+    if (gScreenToDisplay == DISPLAY_MAIN &&
+        gScanStateDir != SCAN_OFF &&
+        gSetting_fast_scan_mode == FAST_SCAN_MODE_FAST &&
+        IS_MR_CHANNEL(gNextMrChannel))
+        gUpdateDisplay = true;
+#endif
+
     if(gScreenToDisplay==DISPLAY_MAIN) {
 #ifdef ENABLE_AGC_SHOW_DATA
         UI_MAIN_PrintAGC(true);
@@ -1160,7 +1168,17 @@ void UI_DisplayMain(void)
 
         if (gSetting_set_gui)
         {
-            UI_PrintStringSmallNormal(s, LCD_WIDTH + 22, 0, line + 1);
+#ifdef ENABLE_K5RX_FAST_SCAN
+            if (gScanStateDir != SCAN_OFF &&
+                gSetting_fast_scan_mode == FAST_SCAN_MODE_FAST &&
+                IS_MR_CHANNEL(gNextMrChannel) && vfo_num == gEeprom.RX_VFO) {
+                char rate[7];
+                sprintf(rate, "%3uc/s", MIN(CHFRSCANNER_FastChannelsPerSec(), 999u));
+                UI_PrintStringSmallNormal(rate, LCD_WIDTH + 22, 0, line + 1);
+                UI_PrintStringSmallNormal(s, LCD_WIDTH + 66, 0, line + 1);
+            } else
+#endif
+                UI_PrintStringSmallNormal(s, LCD_WIDTH + 22, 0, line + 1);
             UI_PrintStringSmallNormal(t, LCD_WIDTH + 2, 0, line + 1);
 
             if (isMainOnly() && !gDTMF_InputMode)
@@ -1192,6 +1210,16 @@ void UI_DisplayMain(void)
             }
 
             GUI_DisplaySmallest(String, 68 + shift, line == 0 ? 17 : 49, false, true);
+
+#ifdef ENABLE_K5RX_FAST_SCAN
+            if (gScanStateDir != SCAN_OFF &&
+                gSetting_fast_scan_mode == FAST_SCAN_MODE_FAST &&
+                IS_MR_CHANNEL(gNextMrChannel) && vfo_num == gEeprom.RX_VFO) {
+                char rate[8];
+                sprintf(rate, "%3uCH/S", MIN(CHFRSCANNER_FastChannelsPerSec(), 999u));
+                GUI_DisplaySmallest(rate, 18, line == 0 ? 17 : 49, false, true);
+            }
+#endif
 
             //sprintf(String, "%d.%02u", vfoInfo->StepFrequency / 100, vfoInfo->StepFrequency % 100);
             //GUI_DisplaySmallest(String, 91, line == 0 ? 2 : 34, false, true);

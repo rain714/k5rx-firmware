@@ -21,6 +21,8 @@ void CHFRSCANNER_Start(const bool storeBackupSettings, const int8_t scan_directi
 void CHFRSCANNER_ContinueScanning(void);
 
 #ifdef ENABLE_K5RX_FAST_SCAN
+void CHFRSCANNER_FastRateTimeSlice500ms(void);
+uint16_t CHFRSCANNER_FastChannelsPerSec(void);
 bool CHFRSCANNER_FastActive(void);
 void CHFRSCANNER_FastAppUpdate(void);
 #endif
