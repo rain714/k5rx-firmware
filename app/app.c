@@ -702,7 +702,9 @@ static void CheckRadioInterrupts(void)
         if (interrupts.dtmf5ToneFound) {    
             const char c = DTMF_GetCharacter(BK4819_GetDTMF_5TONE_Code()); // save the RX'ed DTMF character
             if (c != 0xff) {
+#ifndef DISABLE_TX
                 if (gCurrentFunction != FUNCTION_TRANSMIT) {
+#endif
                     if (gSetting_live_DTMF_decoder) {
                         size_t len = strlen(gDTMF_RX_live);
                         if (len >= sizeof(gDTMF_RX_live) - 1) { // make room
@@ -730,7 +732,9 @@ static void CheckRadioInterrupts(void)
                         DTMF_HandleRequest();
                     }
 #endif
+#ifndef DISABLE_TX
                 }
+#endif
             }
         }
 
@@ -1376,7 +1380,11 @@ void APP_TimeSlice10ms(void)
     gFlashLightBlinkCounter++;
 
 #ifdef ENABLE_AM_FIX
+#ifdef ENABLE_K5RX_FAST_SCAN
+    if (!CHFRSCANNER_FastActive() && gRxVfo->Modulation == MODULATION_AM) {
+#else
     if (gRxVfo->Modulation == MODULATION_AM) {
+#endif
         AM_fix_10ms(gEeprom.RX_VFO);
     }
 #endif
@@ -1392,8 +1400,14 @@ void APP_TimeSlice10ms(void)
     if (gReducedService)
         return;
 
+#ifdef ENABLE_K5RX_FAST_SCAN
+    if (!CHFRSCANNER_FastActive() &&
+        (gCurrentFunction != FUNCTION_POWER_SAVE || !gRxIdleMode))
+        CheckRadioInterrupts();
+#else
     if (gCurrentFunction != FUNCTION_POWER_SAVE || !gRxIdleMode)
         CheckRadioInterrupts();
+#endif
 
     if (gCurrentFunction == FUNCTION_TRANSMIT)
     {   // transmitting

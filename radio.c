@@ -181,8 +181,10 @@ void RADIO_InitInfo(VFO_Info_t *pInfo, const channel_t ChannelSave, const uint32
     pInfo->StepFrequency            = gStepFrequencyTable[pInfo->STEP_SETTING];
     pInfo->CHANNEL_SAVE             = ChannelSave;
     pInfo->FrequencyReverse         = false;
+#ifndef DISABLE_TX
     pInfo->TX_LOCK                  = true;
     pInfo->OUTPUT_POWER             = OUTPUT_POWER_LOW1;
+#endif
     pInfo->freq_config_RX.Frequency = Frequency;
     pInfo->freq_config_TX.Frequency = Frequency;
     pInfo->pRX                      = &pInfo->freq_config_RX;

@@ -75,8 +75,13 @@ void UI_DisplayWelcome(void)
         memset(WelcomeString0, 0, sizeof(WelcomeString0));
         memset(WelcomeString1, 0, sizeof(WelcomeString1));
 
+#ifdef ENABLE_K5RX_CUSTOM_EEPROM
+        EEPROM_ReadBuffer(EEPROM_K5RX_WELCOME_LINE0_BASE, WelcomeString0, EEPROM_K5RX_WELCOME_LINE_SIZE);
+        EEPROM_ReadBuffer(EEPROM_K5RX_WELCOME_LINE1_BASE, WelcomeString1, EEPROM_K5RX_WELCOME_LINE_SIZE);
+#else
         EEPROM_ReadBuffer(0x0EB0, WelcomeString0, 16);
         EEPROM_ReadBuffer(0x0EC0, WelcomeString1, 16);
+#endif
 
         sprintf(WelcomeString2, "%u.%02uV %u%%",
                 gBatteryVoltageAverage / 100,

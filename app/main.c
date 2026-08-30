@@ -353,8 +353,8 @@ void channelMove(uint16_t Channel)
         gAnotherVoiceID        = (VOICE_ID_t)Key;
     #endif
 
-    gEeprom.MrChannel[Vfo]     = (uint8_t)Channel;
-    gEeprom.ScreenChannel[Vfo] = (uint8_t)Channel;
+    gEeprom.MrChannel[Vfo]     = (channel_t)Channel;
+    gEeprom.ScreenChannel[Vfo] = (channel_t)Channel;
     //gRequestSaveVFO            = true;
     gVfoConfigureMode          = VFO_CONFIGURE_RELOAD;
 

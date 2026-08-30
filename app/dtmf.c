@@ -34,12 +34,14 @@
 #include "settings.h"
 #include "ui/ui.h"
 
+#if !defined(DISABLE_TX) || defined(ENABLE_DTMF_CALLING)
 char              gDTMF_String[15];
 
 char              gDTMF_InputBox[15];
 uint8_t           gDTMF_InputBox_Index = 0;
 bool              gDTMF_InputMode      = false;
 uint8_t           gDTMF_PreviousIndex  = 0;
+#endif
 
 char              gDTMF_RX_live[20];
 uint8_t           gDTMF_RX_live_timeout = 0;
@@ -66,7 +68,9 @@ bool              gDTMF_IsTx;
 uint8_t           gDTMF_TxStopCountdown_500ms;
 bool              gDTMF_IsGroupCall;
 #endif
+#if !defined(DISABLE_TX) || defined(ENABLE_DTMF_CALLING)
 DTMF_ReplyState_t gDTMF_ReplyState;
+#endif
 
 #ifdef ENABLE_DTMF_CALLING
 void DTMF_clear_RX(void)
@@ -78,6 +82,7 @@ void DTMF_clear_RX(void)
 }
 #endif
 
+#ifndef DISABLE_TX
 void DTMF_SendEndOfTransmission(void)
 {
     if (gCurrentVfo->DTMF_PTT_ID_TX_MODE == PTT_ID_APOLLO) {
@@ -111,6 +116,7 @@ void DTMF_SendEndOfTransmission(void)
 
     BK4819_ExitDTMF_TX(true);
 }
+#endif
 
 bool DTMF_ValidateCodes(char *pCode, const unsigned int size)
 {
@@ -213,6 +219,7 @@ DTMF_CallMode_t DTMF_CheckGroupCall(const char *pMsg, const unsigned int size)
 }
 #endif
 
+#if !defined(DISABLE_TX) || defined(ENABLE_DTMF_CALLING)
 void DTMF_clear_input_box(void)
 {
     memset(gDTMF_InputBox, 0, sizeof(gDTMF_InputBox));
@@ -231,6 +238,7 @@ void DTMF_Append(const char code)
     if (gDTMF_InputBox_Index < (sizeof(gDTMF_InputBox) - 1))
         gDTMF_InputBox[gDTMF_InputBox_Index++] = code;
 }
+#endif
 
 #ifdef ENABLE_DTMF_CALLING
 void DTMF_HandleRequest(void)
@@ -413,6 +421,7 @@ void DTMF_HandleRequest(void)
 }
 #endif
 
+#ifndef DISABLE_TX
 void DTMF_Reply(void)
 {
     uint16_t    Delay;
@@ -497,3 +506,4 @@ void DTMF_Reply(void)
 
     BK4819_ExitDTMF_TX(false);
 }
+#endif

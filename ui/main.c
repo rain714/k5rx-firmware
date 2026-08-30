@@ -51,7 +51,9 @@ center_line_t center_line = CENTER_LINE_NONE;
     static int8_t RxLine;
     static uint32_t RxOnVfofrequency;
 
+#if !defined(DISABLE_TX) || defined(ENABLE_DTMF_CALLING)
     bool isMainOnlyInputDTMF = false;
+#endif
 
     static bool isMainOnly()
     {
@@ -673,6 +675,7 @@ void UI_DisplayMain(void)
 #endif
 
 
+#if !defined(DISABLE_TX) || defined(ENABLE_DTMF_CALLING)
             if (gDTMF_InputMode
 #ifdef ENABLE_DTMF_CALLING
                 || gDTMF_CallState != DTMF_CALL_STATE_NONE || gDTMF_IsTx
@@ -732,6 +735,7 @@ void UI_DisplayMain(void)
                 continue;
 #endif
             }
+#endif
 
             // highlight the selected/used VFO with a marker
             if (isMainVFO)
@@ -1133,8 +1137,12 @@ void UI_DisplayMain(void)
                 if (code_type < ARRAY_SIZE(code_list))
                     s = code_list[code_type];
 #ifdef ENABLE_FEAT_F4HWN
+#ifdef DISABLE_TX
+                t = gModulationStr[mod];
+#else
                 if(gCurrentFunction != FUNCTION_TRANSMIT || activeTxVFO != vfo_num)
                     t = gModulationStr[mod];
+#endif
 #endif
                 break;
             }
@@ -1181,7 +1189,11 @@ void UI_DisplayMain(void)
                 UI_PrintStringSmallNormal(s, LCD_WIDTH + 22, 0, line + 1);
             UI_PrintStringSmallNormal(t, LCD_WIDTH + 2, 0, line + 1);
 
-            if (isMainOnly() && !gDTMF_InputMode)
+            if (isMainOnly()
+#ifndef DISABLE_TX
+                && !gDTMF_InputMode
+#endif
+            )
             {
                 if(shift == 0)
                 {
@@ -1537,7 +1549,11 @@ void UI_DisplayMain(void)
     //if(gEeprom.MENU_LOCK == false)
     //{
     //#endif
-    if (isMainOnly() && !gDTMF_InputMode)
+    if (isMainOnly()
+#ifndef DISABLE_TX
+        && !gDTMF_InputMode
+#endif
+    )
     {
         sprintf(String, "VFO %s", activeTxVFO ? "B" : "A");
         UI_PrintStringSmallBold(String, 92, 0, 6);

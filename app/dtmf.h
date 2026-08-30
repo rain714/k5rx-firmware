@@ -68,24 +68,32 @@ enum {  // seconds
 
 typedef enum DTMF_CallMode_t DTMF_CallMode_t;
 
+#if !defined(DISABLE_TX) || defined(ENABLE_DTMF_CALLING)
 extern char              gDTMF_String[15];
 
 extern char              gDTMF_InputBox[15];
 extern uint8_t           gDTMF_InputBox_Index;
 extern bool              gDTMF_InputMode;
 extern uint8_t           gDTMF_PreviousIndex;
+#endif
 
 extern char              gDTMF_RX_live[20];
 extern uint8_t           gDTMF_RX_live_timeout;
 
+#if !defined(DISABLE_TX) || defined(ENABLE_DTMF_CALLING)
 extern DTMF_ReplyState_t gDTMF_ReplyState;
+#endif
 
 bool DTMF_ValidateCodes(char *pCode, const unsigned int size);
 char DTMF_GetCharacter(const unsigned int code);
+#if !defined(DISABLE_TX) || defined(ENABLE_DTMF_CALLING)
 void DTMF_clear_input_box(void);
 void DTMF_Append(const char code);
+#endif
+#ifndef DISABLE_TX
 void DTMF_Reply(void);
 void DTMF_SendEndOfTransmission(void);
+#endif
 
 #ifdef ENABLE_DTMF_CALLING
 
