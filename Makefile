@@ -17,6 +17,7 @@ DISABLE_TX ?= 0
 ENABLE_K5RX_CUSTOM_EEPROM ?= 0
 ENABLE_K5RX_FAST_SCAN ?= 0
 ENABLE_K5RX_BANK_UI ?= 0
+K5RX_VERSION ?= dev
 
 # ---- STOCK QUANSHENG FEATURES ----
 ENABLE_FMRADIO                  ?= 0
@@ -105,6 +106,13 @@ ifeq ($(BUILD_PROFILE),K5RX)
 	override ENABLE_K5RX_BANK_UI := 1
 	override ENABLE_FMRADIO := 1
 	override ENABLE_SPECTRUM := 1
+
+	# Keep the on-device/UART/packed image identity distinct from upstream F4HWN.
+	override AUTHOR_STRING := K5RX
+	override VERSION_STRING := $(K5RX_VERSION)
+	override AUTHOR_STRING_2 := K5RX
+	override VERSION_STRING_2 := $(K5RX_VERSION)
+	override EDITION_STRING := RX
 
 	# Transmit-only features are intentionally absent from the K5RX profile.
 	override ENABLE_AIRCOPY := 0
