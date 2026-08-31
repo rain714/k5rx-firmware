@@ -783,8 +783,10 @@ static void SETTINGS_ResetK5RXMutable(bool bIsAll)
     const uint16_t end = resetAll ? EEPROM_K5RX_MUTABLE_END : EEPROM_K5RX_FM_END;
 
     memset(blank, 0xFF, sizeof(blank));
-    for (uint16_t offset = start; offset < end; offset += sizeof(blank))
+    for (uint16_t offset = start; offset < end; offset += sizeof(blank)) {
+        blank[0] = (offset == EEPROM_K5RX_WELCOME_LINE0_BASE || offset == EEPROM_K5RX_WELCOME_LINE1_BASE) ? 0 : 0xFFu;
         EEPROM_WriteBuffer(offset, blank);
+    }
 
     SETTINGS_SetK5RXDefaults();
     SETTINGS_SaveK5RXHeader();
