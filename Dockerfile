@@ -1,4 +1,4 @@
-ARG ALPINE_TAG=3.21
+ARG ALPINE_TAG=3.22
 FROM alpine:${ALPINE_TAG}
 
 # Reproducible firmware build toolchain. Project sources are mounted at /work
