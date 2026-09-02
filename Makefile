@@ -5,7 +5,7 @@
 
 # Build profiles bundle a supported set of feature flags.
 # Keep profile selection separate from the individual feature macros used by C code.
-BUILD_PROFILE ?= DEFAULT
+BUILD_PROFILE ?= K5RX
 SUPPORTED_BUILD_PROFILES := DEFAULT K5RX
 
 ifeq ($(filter $(BUILD_PROFILE),$(SUPPORTED_BUILD_PROFILES)),)

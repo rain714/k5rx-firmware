@@ -1,24 +1,91 @@
-name: Build Firmware
+name: Build K5RX firmware
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firmware-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-    - name: Compile firmware
-      run: |
-        chmod +x compile-with-docker.sh
-        ./compile-with-docker.sh
+      - name: Build toolchain image
+        run: docker build -t k5rx-build .
 
-    - name: Upload firmware artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: firmware-artifact
-        path: compiled-firmware/f4hwn.packed.bin
+      - name: Verify DEFAULT regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --network none \
+            -v "$PWD:/work:rw" \
+            --workdir /work \
+            k5rx-build \
+            sh -c 'make clean all BUILD_PROFILE=DEFAULT'
+
+          actual=$(docker run --rm --network none \
+            -v "$PWD:/work:rw" \
+            --workdir /work \
+            k5rx-build \
+            sh -c "arm-none-eabi-size f4hwn | tail -n 1 | awk '{print \$1,\$2,\$3}'")
+
+          echo "DEFAULT size: $actual" >> "$GITHUB_STEP_SUMMARY"
+          test "$actual" = "52960 16 2868" || {
+            echo "DEFAULT size regression: $actual (expected 52960 16 2868)" >&2
+            exit 1
+          }
+
+      - name: Build K5RX
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --network none \
+            -v "$PWD:/work:rw" \
+            --workdir /work \
+            k5rx-build \
+            sh -c 'make clean all BUILD_PROFILE=K5RX K5RX_VERSION=ci'
+
+          size=$(docker run --rm --network none \
+            -v "$PWD:/work:rw" \
+            --workdir /work \
+            k5rx-build \
+            sh -c "arm-none-eabi-size f4hwn | tail -n 1 | awk '{print \$1,\$2,\$3}'")
+          text=${size%% *}
+
+          echo "K5RX size: $size" >> "$GITHUB_STEP_SUMMARY"
+          test "$text" -le 61440 || {
+            echo "K5RX text exceeds the 60 KiB budget: $text" >&2
+            exit 1
+          }
+
+      - name: Prepare artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p compiled-firmware
+          cp f4hwn.bin compiled-firmware/k5rx-firmware.bin
+          cp f4hwn.packed.bin compiled-firmware/k5rx-firmware.packed.bin
+          (cd compiled-firmware && sha256sum k5rx-firmware.bin k5rx-firmware.packed.bin > SHA256SUMS)
+          cat compiled-firmware/SHA256SUMS >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: k5rx-firmware-ci
+          path: |
+            compiled-firmware/k5rx-firmware.bin
+            compiled-firmware/k5rx-firmware.packed.bin
+            compiled-firmware/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 14
