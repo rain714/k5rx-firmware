@@ -1320,7 +1320,9 @@ void UI_DisplayMenu(void)
 
                 UI_PrintStringSmallNormal(edit, 54, 127, 1);
 
-                #ifdef ENABLE_FEAT_F4HWN
+                #ifdef K5RX_BUILD_ID
+                    UI_PrintStringSmallNormal(K5RX_BUILD_ID, 54, 127, 6);
+                #elif defined(ENABLE_FEAT_F4HWN)
                     UI_PrintStringSmallNormal(Edition, 54, 127, 6);
                 #endif
 

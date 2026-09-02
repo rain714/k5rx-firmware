@@ -52,7 +52,9 @@ void UI_DisplayWelcome(void)
     char WelcomeString0[16];
     char WelcomeString1[16];
     char WelcomeString2[16];
+#ifndef K5RX_BUILD_ID
     char WelcomeString3[20];
+#endif
 
     memset(gStatusLine,  0, sizeof(gStatusLine));
 
@@ -135,8 +137,12 @@ void UI_DisplayWelcome(void)
             gFrameBuffer[4][i] ^= 0xFF;
         }
 
+#ifdef K5RX_BUILD_ID
+        UI_PrintStringSmallNormal("build " K5RX_BUILD_ID, 0, 127, 6);
+#else
         sprintf(WelcomeString3, "%s Edition", Edition);
         UI_PrintStringSmallNormal(WelcomeString3, 0, 127, 6);
+#endif
 
         /*
         #ifdef ENABLE_FEAT_F4HWN_RESCUE_OPS

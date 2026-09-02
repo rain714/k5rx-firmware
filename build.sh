@@ -3,6 +3,7 @@ set -eu
 
 PROFILE="${BUILD_PROFILE:-K5RX}"
 VERSION="${K5RX_VERSION:-dev}"
+BUILD_ID="${K5RX_BUILD_ID:-}"
 IMAGE="${BUILD_IMAGE:-k5rx-build}"
 OUT_DIR="${OUT_DIR:-compiled-firmware}"
 RUNTIME="${CONTAINER_RUNTIME:-auto}"
@@ -34,6 +35,13 @@ case "$PROFILE" in
 esac
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if [ -z "$BUILD_ID" ]; then
+  if command -v git >/dev/null 2>&1 && BUILD_ID=$(git -C "$ROOT" rev-parse --short=7 HEAD 2>/dev/null); then
+    :
+  else
+    BUILD_ID=unknown
+  fi
+fi
 mkdir -p "$ROOT/$OUT_DIR"
 rm -f "$ROOT/$OUT_DIR"/k5rx-firmware.bin \
       "$ROOT/$OUT_DIR"/k5rx-firmware.packed.bin \
@@ -47,7 +55,7 @@ echo "==> Building profile $PROFILE"
   -v "$ROOT:/work:rw" \
   --workdir /work \
   "$IMAGE" \
-  sh -c "make clean all BUILD_PROFILE='$PROFILE' K5RX_VERSION='$VERSION'"
+  sh -c "make clean all BUILD_PROFILE='$PROFILE' K5RX_VERSION='$VERSION' K5RX_BUILD_ID='$BUILD_ID'"
 
 if [ "$PROFILE" = K5RX ]; then
   cp "$ROOT/f4hwn.bin" "$ROOT/$OUT_DIR/k5rx-firmware.bin"

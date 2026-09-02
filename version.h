@@ -22,6 +22,6 @@ extern const char UART_Version[];
 
 #endif
 
-#ifdef ENABLE_FEAT_F4HWN
+#if defined(ENABLE_FEAT_F4HWN) && !defined(K5RX_BUILD_ID)
 extern const char Edition[];
 #endif

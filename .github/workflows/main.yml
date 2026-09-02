@@ -50,11 +50,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          build_id="${GITHUB_SHA:0:7}"
           docker run --rm --network none \
             -v "$PWD:/work:rw" \
             --workdir /work \
             k5rx-build \
-            sh -c 'make clean all BUILD_PROFILE=K5RX K5RX_VERSION=ci'
+            sh -c "make clean all BUILD_PROFILE=K5RX K5RX_VERSION=ci K5RX_BUILD_ID='$build_id'"
 
           size=$(docker run --rm --network none \
             -v "$PWD:/work:rw" \
