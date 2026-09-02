@@ -35,7 +35,7 @@ jobs:
             -v "$PWD:/work:rw" \
             --workdir /work \
             k5rx-build \
-            sh -c "arm-none-eabi-size f4hwn | tail -n 1 | awk '{print \\$1,\\$2,\\$3}'")
+            sh -c "arm-none-eabi-size f4hwn | tail -n 1 | awk '{print \$1,\$2,\$3}'")
 
           echo "DEFAULT size: $actual" >> "$GITHUB_STEP_SUMMARY"
           test "$actual" = "52960 16 2868" || {
@@ -65,7 +65,7 @@ jobs:
             -v "$PWD:/work:rw" \
             --workdir /work \
             k5rx-build \
-            sh -c "arm-none-eabi-size f4hwn | tail -n 1 | awk '{print \\$1,\\$2,\\$3}'")
+            sh -c "arm-none-eabi-size f4hwn | tail -n 1 | awk '{print \$1,\$2,\$3}'")
           text=${size%% *}
 
           echo "K5RX version: $TAG" >> "$GITHUB_STEP_SUMMARY"
