@@ -1,0 +1,111 @@
+name: Release K5RX firmware
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Build toolchain image
+        run: docker build -t k5rx-build .
+
+      - name: Verify DEFAULT regression
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker run --rm --network none \
+            -v "$PWD:/work:rw" \
+            --workdir /work \
+            k5rx-build \
+            make clean all BUILD_PROFILE=DEFAULT
+
+          actual=$(docker run --rm --network none \
+            -v "$PWD:/work:rw" \
+            --workdir /work \
+            k5rx-build \
+            sh -c "arm-none-eabi-size f4hwn | tail -n 1 | awk '{print \\$1,\\$2,\\$3}'")
+
+          echo "DEFAULT size: $actual" >> "$GITHUB_STEP_SUMMARY"
+          test "$actual" = "52960 16 2868" || {
+            echo "DEFAULT size regression: $actual (expected 52960 16 2868)" >&2
+            exit 1
+          }
+
+      - name: Build release firmware
+        shell: bash
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+
+          build_id=$(git rev-parse --short=7 HEAD)
+
+          docker run --rm --network none \
+            -v "$PWD:/work:rw" \
+            --workdir /work \
+            k5rx-build \
+            make clean all \
+              BUILD_PROFILE=K5RX \
+              K5RX_VERSION="$TAG" \
+              K5RX_BUILD_ID="$build_id"
+
+          size=$(docker run --rm --network none \
+            -v "$PWD:/work:rw" \
+            --workdir /work \
+            k5rx-build \
+            sh -c "arm-none-eabi-size f4hwn | tail -n 1 | awk '{print \\$1,\\$2,\\$3}'")
+          text=${size%% *}
+
+          echo "K5RX version: $TAG" >> "$GITHUB_STEP_SUMMARY"
+          echo "K5RX build: $build_id" >> "$GITHUB_STEP_SUMMARY"
+          echo "K5RX size: $size" >> "$GITHUB_STEP_SUMMARY"
+
+          test "$text" -le 61440 || {
+            echo "K5RX text exceeds the 60 KiB budget: $text" >&2
+            exit 1
+          }
+
+      - name: Prepare release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p compiled-firmware
+          cp f4hwn.bin compiled-firmware/k5rx-firmware.bin
+          cp f4hwn.packed.bin compiled-firmware/k5rx-firmware.packed.bin
+
+          (
+            cd compiled-firmware
+            sha256sum \
+              k5rx-firmware.bin \
+              k5rx-firmware.packed.bin \
+              > SHA256SUMS
+          )
+
+          cat compiled-firmware/SHA256SUMS >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attach assets to GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+
+          gh release upload "$TAG" \
+            compiled-firmware/k5rx-firmware.bin \
+            compiled-firmware/k5rx-firmware.packed.bin \
+            compiled-firmware/SHA256SUMS \
+            --clobber
