@@ -1,0 +1,19 @@
+K5RX Firmware
+Copyright 2026 K5RX contributors
+
+This product is derived from and incorporates work from the open Quansheng UV-K5 firmware ecosystem.
+
+Primary upstream lineage includes:
+
+- F4HWN custom firmware by F4HWN / armel and contributors
+- Egzumer UV-K5 firmware and contributors
+- OneOfEleven UV-K5 firmware modifications
+- DualTachyon open UV-K5 firmware
+- Spectrum Analyzer work by fagci and contributors
+
+The K5RX public history starts from F4HWN v4.3 commit:
+fbcf26d8e9811b135b7e2d97bdefebaa4b3ed9e0
+
+The repository also contains third-party components under their respective licenses, including CMSIS and the embedded printf library. Their license files are retained alongside those components.
+
+This NOTICE is informational and does not alter the license terms in LICENSE or any third-party license.
