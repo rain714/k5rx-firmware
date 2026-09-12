@@ -16,14 +16,6 @@ static void UI_BANK_PrintRow(const char *text, uint8_t line, bool selected)
             gFrameBuffer[line][x] ^= 0xFF;
 }
 
-static void UI_BANK_Status(const char *text)
-{
-    memset(gStatusLine, 0, sizeof(gStatusLine));
-    UI_PrintStringSmallBufferBold(text, gStatusLine);
-    ST7565_BlitStatusLine();
-    gUpdateStatus = false;
-}
-
 static void UI_BANK_FetchName(uint8_t bank, char name[11])
 {
     int8_t last = -1;
@@ -50,14 +42,24 @@ fallback:
 void UI_DisplayBank(void)
 {
     char text[36];
+    char name[11];
+    const uint8_t selectedBank = gBankUiSelection + EEPROM_K5RX_BANK_MIN;
 
     UI_DisplayClear();
+    if (gBankUiState != BANK_UI_CHANNEL_LIST) {
+        uint16_t count = 0;
+        for (channel_t channel = 0; channel < EEPROM_K5RX_CHANNEL_COUNT; channel++)
+            if (BANK_IsMember(channel))
+                count++;
+        UI_BANK_FetchName(selectedBank, name);
+        sprintf(text, "B%u %-10.10s %u", selectedBank, name, count);
+        UI_PrintStringSmallNormal(text, 0, 0, 0);
+    }
+
     if (gBankUiState == BANK_UI_BULK_SELECT) {
-        sprintf(text, "B%u BULK M:RUN", gBankUiSelection + EEPROM_K5RX_BANK_MIN);
-        UI_BANK_Status(text);
         for (uint8_t row = 0; row < 6; row++) {
             sprintf(text, "%s L%u", row < 3 ? "LOAD" : "ADD", (row % 3) + 1);
-            UI_BANK_PrintRow(text, row, row == gBankUiAction);
+            UI_BANK_PrintRow(text, row + 1u, row == gBankUiAction);
         }
         ST7565_BlitFullScreen();
         return;
@@ -66,7 +68,6 @@ void UI_DisplayBank(void)
     if (gBankUiState == BANK_UI_CHANNEL_LIST) {
         uint16_t selected = 0;
         uint16_t shown = 0;
-        char name[11];
 
         for (channel_t channel = 0; channel < gBankUiChannel; channel++)
             if (BANK_IsMember(channel))
@@ -93,26 +94,20 @@ void UI_DisplayBank(void)
         return;
     }
 
-    const uint8_t selectedBank = gBankUiSelection + EEPROM_K5RX_BANK_MIN;
-    uint16_t count = 0;
-    char name[11];
-
-    for (channel_t channel = 0; channel < EEPROM_K5RX_CHANNEL_COUNT; channel++)
-        if (BANK_IsMember(channel))
-            count++;
-    UI_BANK_FetchName(selectedBank, name);
-    sprintf(text, "B%u %-10.10s %u", selectedBank, name, count);
-    UI_PrintStringSmallNormal(text, 0, 0, 0);
-
     for (uint8_t row = 0; row < 4; row++) {
         for (uint8_t col = 0; col < 2; col++) {
             const uint8_t bank = row + (col * 4u) + EEPROM_K5RX_BANK_MIN;
             const uint8_t x = col * 64u;
             UI_BANK_FetchName(bank, name);
-            if (bank == selectedBank)
+            name[8] = 0;
+            if (bank == selectedBank) {
                 memcpy(&gFrameBuffer[row + 1u][x], BITMAP_VFO_Default, sizeof(BITMAP_VFO_Default));
-            sprintf(text, "B%u %.6s", bank, name);
-            UI_PrintStringSmallNormal(text, x + 8u, 0, row + 1u);
+            } else {
+                text[0] = '0' + bank;
+                text[1] = 0;
+                UI_PrintStringSmallNormal(text, x, 0, row + 1u);
+            }
+            UI_PrintStringSmallNormal(name, x + 8u, 0, row + 1u);
         }
     }
 
