@@ -1130,8 +1130,12 @@ void RADIO_SetModulation(ModulationMode_t modulation)
 
 void RADIO_SetupAGC(bool listeningAM, bool disable)
 {
-    static uint8_t lastSettings;
+    static uint8_t lastSettings = 0xFFu;
     uint8_t newSettings = (listeningAM << 1) | disable;
+#ifdef ENABLE_AM_FIX
+    if (listeningAM && gSetting_AM_fix)
+        newSettings |= 1u << 2;
+#endif
     if(lastSettings == newSettings)
         return;
     lastSettings = newSettings;
