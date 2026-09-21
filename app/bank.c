@@ -9,7 +9,12 @@
 #include "ui/ui.h"
 
 BANK_Ui_t gBankUi;
-static bool gBankMainPreview;
+bool gBankMainPreview;
+static uint8_t gBankPreviewDualWatch;
+static uint8_t gBankPreviewCrossBand;
+static uint8_t gBankPreviewVfo;
+static channel_t gBankPreviewMrChannel;
+static channel_t gBankPreviewScreenChannel;
 
 bool BANK_IsMember(channel_t channel)
 {
@@ -97,6 +102,11 @@ static void BANK_Apply(void)
 
 static void BANK_StartMainPreview(void)
 {
+    gBankPreviewDualWatch = gEeprom.DUAL_WATCH;
+    gBankPreviewCrossBand = gEeprom.CROSS_BAND_RX_TX;
+    gBankPreviewVfo = gEeprom.TX_VFO;
+    gBankPreviewMrChannel = gEeprom.MrChannel[gBankPreviewVfo];
+    gBankPreviewScreenChannel = gEeprom.ScreenChannel[gBankPreviewVfo];
     gEeprom.DUAL_WATCH = DUAL_WATCH_OFF;
     gEeprom.CROSS_BAND_RX_TX = CROSS_BAND_OFF;
     channelMove(gBankUiChannel);
@@ -112,23 +122,29 @@ bool BANK_MainPreviewProcessKey(KEY_Code_t key, bool pressed, bool held)
         return false;
 
     if (key == KEY_MENU) {
-        if (!pressed && !held) {
-            gBankMainPreview = false;
-            SETTINGS_SaveVfoIndices();
-            gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
-        }
-        return true;
+        if (pressed || held)
+            return true;
+    } else if (key != KEY_EXIT || !pressed || held) {
+        return false;
     }
 
-    if (key == KEY_EXIT && pressed && !held) {
-        gBankMainPreview = false;
+    gEeprom.DUAL_WATCH = gBankPreviewDualWatch;
+    gEeprom.CROSS_BAND_RX_TX = gBankPreviewCrossBand;
+    gBankMainPreview = false;
+    gFlagReconfigureVfos = true;
+    gUpdateStatus = true;
+
+    if (key == KEY_MENU)
+        SETTINGS_SaveVfoIndices();
+    else {
+        gEeprom.MrChannel[gBankPreviewVfo] = gBankPreviewMrChannel;
+        gEeprom.ScreenChannel[gBankPreviewVfo] = gBankPreviewScreenChannel;
         gRequestDisplayScreen = DISPLAY_BANK;
         gUpdateDisplay = true;
-        gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
-        return true;
     }
 
-    return false;
+    gBeepToPlay = BEEP_1KHZ_60MS_OPTIONAL;
+    return true;
 }
 
 void BANK_ProcessKeys(KEY_Code_t key, bool pressed, bool held)

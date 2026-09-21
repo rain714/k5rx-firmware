@@ -24,6 +24,7 @@ typedef struct {
 } BANK_Ui_t;
 
 extern BANK_Ui_t gBankUi;
+extern bool gBankMainPreview;
 #define gBankUiChannel   gBankUi.channel
 #define gBankUiState     gBankUi.state
 #define gBankUiSelection gBankUi.selection

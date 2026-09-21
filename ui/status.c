@@ -17,6 +17,9 @@
 #include <string.h>
 
 #include "app/chFrScanner.h"
+#ifdef ENABLE_K5RX_BANK_UI
+    #include "app/bank.h"
+#endif
 #ifdef ENABLE_FMRADIO
     #include "app/fm.h"
 #endif
@@ -147,6 +150,12 @@ void UI_DisplayStatus()
         x += sizeof(BITMAP_VoicePrompt);
         #endif
 
+        #ifdef ENABLE_K5RX_BANK_UI
+        if (gBankMainPreview) {
+            UI_PrintStringSmallBufferNormal("BP", line + x + 2);
+        }
+        else
+        #endif
         if(!SCANNER_IsScanning()) {
         #ifdef ENABLE_FEAT_F4HWN_RX_TX_TIMER
             #ifndef DISABLE_TX
